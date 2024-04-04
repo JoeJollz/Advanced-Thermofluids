@@ -9,6 +9,8 @@ from scipy.optimize import fsolve
 from numpy.polynomial import polynomial
 from sympy import var, Eq, solve, real_roots
 import math as m
+import matplotlib.pyplot as plt
+import pygad
 
 #%%
 ## IAPWS 2007
@@ -513,6 +515,7 @@ Ts = Sat_T_P(7.406)
 enthalpy_test= WaterSat_H_PT(7.406, Ts)
 
 
+T_outside = 32
 Qcooling = 10.7
 Qe = Qcooling
 P_high = 7.406 # kPa
@@ -521,67 +524,337 @@ C_low = 56.48 #%
 C_high = 62.16 #%
 Qpump = 0.02
 
-t17 = Sat_T_P(P_high) # sat T of liquid water
-h17 = WaterSat_H_PT(P_high, t17)  # sat liquid water high pressure
+P_lows = []
+P_highs = []
+COPs = []
+Qgs = []
 
-
-h18 = h17   # expansion value, H18 is at the low pressure state now.
-hf = WaterSat_H_PT(P_low, Sat_T_P(P_low))
-hg = SteamSat_H_PT(P_low, Sat_T_P(P_low)) 
-vapor_quality_18 = (h18-hf)/(hg-hf)
-
-t19 = Sat_T_P(P_low)
-h19 = SteamSat_H_PT(P_low, t19) # sat vapor low pressure
-
-m19 = Qe/(h19-h18) #kg/s 
-m18 = m17 = m16 = m19
-t18 = t19 
-
-rt10 = rt__(P_low, C, D, E)
-t10 = t__(C_low, rt10, B, A)
-h10 = H_Xt(C_low, t10, A_t1, B_t1, C_t1)
-
-m15 = -m19/(1-(C_high/C_low))
-m14 = m13 = m15
-
-m10 = C_high/C_low*m15
-m11 = m12 = m10 
-
-h11 = (m10*h10+Qpump)/m11 
-
-# for h15 we assume a vapor quality of 0.005, after the expansion valve. hence 
-# h15 = h_LiBr_solution + h15_vapor (0.005)
-hf = WaterSat_H_PT(P_low, Sat_T_P(P_low))
-hg = SteamSat_H_PT(P_low, Sat_T_P(P_low))
-vapor_quality_15 = 0.005
-h15_steam_compo = vapor_quality_15*(hg-hf)+hf
-rt15 = rt__(P_low, C, D, E)
-t15 = t__(C_high, rt15, B, A)
-h15 = H_Xt(C_high, t15, A_t1, B_t1, C_t1) + h15_steam_compo 
-h14 = h15
-
-rt13 = rt__(P_high, C, D, E)
-t13 = t__(C_high, rt13, B, A)
-h13 = H_Xt(C_high, t13, A_t1, B_t1, C_t1)
-
-# Heat exhanger balance
-# Stream 1 energy balance 
-Q_he = m13*h13 - m14*h14
-# Stream 2 energy balance
-h12 = (m11*h11 + Q_he)/m12
-
-# Solving for stream 16
-# firstly working on the condensor, we know there is a difference of saturated vapor 
-# to saturated liquid, as stream 16 is already working in the superheated region. 
-
-Tsat = Sat_T_P(P_high)  # T for stream 16 always has to be greater than Tsat.
-h16 = H_vap_PT(P_high,  76.76)
-Qc = m16*h16 - m17*h17 # correct
-Qg = m13*h13 + m16*h16 - m12*h12  # incorrect
-COP = Qe/Qg
+for P_low in np.arange(0.68, 4.3, 0.025):
+    
+    for P_high in np.arange(4.8, 9.0, 0.025):
+        P_lows.append(P_low)
+        P_highs.append(P_high)
+        t17 = Sat_T_P(P_high) # sat T of liquid water
+        #T = Sat_T_P(4.8)
+        h17 = WaterSat_H_PT(P_high, t17)  # sat liquid water high pressure
+        
+        
+        h18 = h17   # expansion value, H18 is at the low pressure state now.
+        hf = WaterSat_H_PT(P_low, Sat_T_P(P_low))
+        hg = SteamSat_H_PT(P_low, Sat_T_P(P_low)) 
+        vapor_quality_18 = (h18-hf)/(hg-hf)
+        
+        t19 = Sat_T_P(P_low)
+        h19 = SteamSat_H_PT(P_low, t19) # sat vapor low pressure
+        
+        m19 = Qe/(h19-h18) #kg/s 
+        m18 = m17 = m16 = m19
+        t18 = t19 
+        
+        rt10 = rt__(P_low, C, D, E)
+        t10 = t__(C_low, rt10, B, A)
+        h10 = H_Xt(C_low, t10, A_t1, B_t1, C_t1)
+        
+        m15 = -m19/(1-(C_high/C_low))
+        m14 = m13 = m15
+        
+        m10 = C_high/C_low*m15
+        m11 = m12 = m10 
+        
+        h11 = (m10*h10+Qpump)/m11 
+        
+        # for h15 we assume a vapor quality of 0.005, after the expansion valve. hence 
+        # h15 = h_LiBr_solution + h15_vapor (0.005)
+        hf = WaterSat_H_PT(P_low, Sat_T_P(P_low))
+        hg = SteamSat_H_PT(P_low, Sat_T_P(P_low))
+        vapor_quality_15 = 0.005
+        h15_steam_compo = vapor_quality_15*(hg-hf)+hf
+        rt15 = rt__(P_low, C, D, E)
+        t15 = t__(C_high, rt15, B, A)
+        h15 = H_Xt(C_high, t15, A_t1, B_t1, C_t1) + h15_steam_compo 
+        h14 = h15
+        
+        rt13 = rt__(P_high, C, D, E)
+        t13 = t__(C_high, rt13, B, A)
+        h13 = H_Xt(C_high, t13, A_t1, B_t1, C_t1)
+        
+        # Heat exhanger balance
+        # Stream 1 energy balance 
+        Q_he = m13*h13 - m14*h14
+        # Stream 2 energy balance
+        h12 = (m11*h11 + Q_he)/m12
+        
+        # Solving for stream 16
+        # firstly working on the condensor, we know there is a difference of saturated vapor 
+        # to saturated liquid, as stream 16 is already working in the superheated region. 
+        
+        Tsat = Sat_T_P(P_high)  # T for stream 16 always has to be greater than Tsat.
+        h16 = H_vap_PT(P_high,  76.76)
+        Qc = m16*h16 - m17*h17 # correct
+        Qg = m13*h13 + m16*h16 - m12*h12  # incorrect
+        COP = Qe/Qg
+        COPs.append(COP)
+        Qgs.append(Qg)
 
 ## now increment the T a little more to see how the COP and Qg are effected. Do this
 # several times. When satisfied, then change either P_low, P_high, C_low, C_high.
 
 #NOTE : the temperature of saturated liquid water under high pressure must not be less then
 # the external temperature of moroccan air :) 
+P_lows = np.array(P_lows)
+P_highs = np.array(P_highs)
+COPs = np.array(COPs)
+
+# Reshape COPs to be a 2D array for plotting
+num_P_lows = len(np.unique(P_lows))
+num_P_highs = len(np.unique(P_highs))
+COPs = COPs.reshape(num_P_highs, num_P_lows)
+
+# Create the heatmap
+plt.imshow(COPs, extent=[min(P_lows), max(P_lows), min(P_highs), max(P_highs)],
+           aspect='auto', origin='lower')
+plt.colorbar(label='Coefficient of Performance (COP)')
+plt.xlabel('Lower system pressure (kPa)')
+plt.ylabel('Upper system pressure (kPa)')
+plt.title('Heatmap of COP vs Varying System Pressures')
+plt.show()
+
+
+T_outside = 32
+Qcooling = 10.7
+Qe = Qcooling
+P_high = 4.8 # kPa
+P_low = 0.68 # kPa
+Qpump = 0.02 # kW
+
+C_low = 56.48 #%
+C_high = 62.16 #%
+Qpump = 0.02
+
+C_lows = []
+C_highs = []
+C_COPs = []
+Qgs = []
+
+for C_low in np.arange(40, 55, 1):
+    
+    for C_high in np.arange(55, 70, 1):
+        C_lows.append(C_low)
+        C_highs.append(C_high)
+        t17 = Sat_T_P(P_high) # sat T of liquid water
+        #T = Sat_T_P(4.8)
+        h17 = WaterSat_H_PT(P_high, t17)  # sat liquid water high pressure
+        
+        
+        h18 = h17   # expansion value, H18 is at the low pressure state now.
+        hf = WaterSat_H_PT(P_low, Sat_T_P(P_low))
+        hg = SteamSat_H_PT(P_low, Sat_T_P(P_low)) 
+        vapor_quality_18 = (h18-hf)/(hg-hf)
+        
+        t19 = Sat_T_P(P_low)
+        h19 = SteamSat_H_PT(P_low, t19) # sat vapor low pressure
+        
+        m19 = Qe/(h19-h18) #kg/s 
+        m18 = m17 = m16 = m19
+        t18 = t19 
+        
+        rt10 = rt__(P_low, C, D, E)
+        t10 = t__(C_low, rt10, B, A)
+        h10 = H_Xt(C_low, t10, A_t1, B_t1, C_t1)
+        
+        m15 = -m19/(1-(C_high/C_low))
+        m14 = m13 = m15
+        
+        m10 = C_high/C_low*m15
+        m11 = m12 = m10 
+        
+        h11 = (m10*h10+Qpump)/m11 
+        
+        # for h15 we assume a vapor quality of 0.005, after the expansion valve. hence 
+        # h15 = h_LiBr_solution + h15_vapor (0.005)
+        hf = WaterSat_H_PT(P_low, Sat_T_P(P_low))
+        hg = SteamSat_H_PT(P_low, Sat_T_P(P_low))
+        vapor_quality_15 = 0.005
+        h15_steam_compo = vapor_quality_15*(hg-hf)+hf
+        rt15 = rt__(P_low, C, D, E)
+        t15 = t__(C_high, rt15, B, A)
+        h15 = H_Xt(C_high, t15, A_t1, B_t1, C_t1) + h15_steam_compo 
+        h14 = h15
+        
+        rt13 = rt__(P_high, C, D, E)
+        t13 = t__(C_high, rt13, B, A)
+        h13 = H_Xt(C_high, t13, A_t1, B_t1, C_t1)
+        
+        # Heat exhanger balance
+        # Stream 1 energy balance 
+        Q_he = m13*h13 - m14*h14
+        # Stream 2 energy balance
+        h12 = (m11*h11 + Q_he)/m12
+        
+        # Solving for stream 16
+        # firstly working on the condensor, we know there is a difference of saturated vapor 
+        # to saturated liquid, as stream 16 is already working in the superheated region. 
+        
+        Tsat = Sat_T_P(P_high)  # T for stream 16 always has to be greater than Tsat.
+        h16 = H_vap_PT(P_high,  76.76)
+        Qc = m16*h16 - m17*h17 # correct
+        Qg = m13*h13 + m16*h16 - m12*h12  # incorrect
+        COP = Qe/Qg
+        C_COPs.append(COP)
+        Qgs.append(Qg)
+
+C_lows = np.array(C_lows)
+C_highs = np.array(C_highs)
+C_COPs = np.array(C_COPs)
+
+# Reshape COPs to be a 2D array for plotting
+num_C_lows = len(np.unique(C_lows))
+num_C_highs = len(np.unique(C_highs))
+C_COPs = C_COPs.reshape(num_C_highs, num_C_lows)
+
+# Create the heatmap
+plt.imshow(C_COPs, extent=[min(C_lows), max(C_lows), min(C_highs), max(C_highs)],
+           aspect='auto', origin='lower')
+plt.colorbar(label='Coefficient of Performance (COP)')
+plt.xlabel('Lower LiBr Concentration (%)')
+plt.ylabel('Upper LiBr Concentration (%)')
+plt.title('Heatmap of COP vs Varying LiBr Concentrations')
+plt.show()
+
+
+desired_output = 1
+def fitness_func(ga_instance, solution, solution_idx):
+    P_low = (( solution[0] - 0) /(100 - 0)) * (4.8 - 0.676)+0.676
+    if P_low <0.676:
+        return -np.inf
+    P_high = ((solution[1] - 0) / (100 - 0)) * (10 - 4.8) + 4.8
+   # rescaled_number = ((original_number - original_min) / (original_max - original_min)) * (target_max - target_min) + target_min
+    if  P_high< (P_low+0.5) or P_high> 10 or P_high<4.8:
+        return -np.inf
+    C_low = solution[2]
+    if C_low < 40:
+        return -np.inf
+    C_high = solution[3]
+    if C_high<C_low or C_high > 70:
+        return -np.inf
+    
+    
+    t17 = Sat_T_P(P_high) # sat T of liquid water
+    #T = Sat_T_P(4.8)
+    h17 = WaterSat_H_PT(P_high, t17)  # sat liquid water high pressure
+    
+    
+    h18 = h17   # expansion value, H18 is at the low pressure state now.
+    hf = WaterSat_H_PT(P_low, Sat_T_P(P_low))
+    hg = SteamSat_H_PT(P_low, Sat_T_P(P_low)) 
+    vapor_quality_18 = (h18-hf)/(hg-hf)
+    
+    t19 = Sat_T_P(P_low)
+    h19 = SteamSat_H_PT(P_low, t19) # sat vapor low pressure
+    
+    m19 = Qe/(h19-h18) #kg/s 
+    m18 = m17 = m16 = m19
+    t18 = t19 
+    
+    rt10 = rt__(P_low, C, D, E)
+    t10 = t__(C_low, rt10, B, A)
+    h10 = H_Xt(C_low, t10, A_t1, B_t1, C_t1)
+    
+    m15 = -m19/(1-(C_high/C_low))
+    m14 = m13 = m15
+    
+    m10 = C_high/C_low*m15
+    m11 = m12 = m10 
+    
+    h11 = (m10*h10+Qpump)/m11 
+    
+    # for h15 we assume a vapor quality of 0.005, after the expansion valve. hence 
+    # h15 = h_LiBr_solution + h15_vapor (0.005)
+    hf = WaterSat_H_PT(P_low, Sat_T_P(P_low))
+    hg = SteamSat_H_PT(P_low, Sat_T_P(P_low))
+    vapor_quality_15 = 0.005
+    h15_steam_compo = vapor_quality_15*(hg-hf)+hf
+    rt15 = rt__(P_low, C, D, E)
+    t15 = t__(C_high, rt15, B, A)
+    h15 = H_Xt(C_high, t15, A_t1, B_t1, C_t1) + h15_steam_compo 
+    h14 = h15
+    
+    rt13 = rt__(P_high, C, D, E)
+    t13 = t__(C_high, rt13, B, A)
+    h13 = H_Xt(C_high, t13, A_t1, B_t1, C_t1)
+    
+    # Heat exhanger balance
+    # Stream 1 energy balance 
+    Q_he = m13*h13 - m14*h14
+    # Stream 2 energy balance
+    h12 = (m11*h11 + Q_he)/m12
+    
+    # Solving for stream 16
+    # firstly working on the condensor, we know there is a difference of saturated vapor 
+    # to saturated liquid, as stream 16 is already working in the superheated region. 
+    
+    Tsat = Sat_T_P(P_high)  # T for stream 16 always has to be greater than Tsat.
+    h16 = H_vap_PT(P_high,  76.76)
+    Qc = m16*h16 - m17*h17 # correct
+    Qg = m13*h13 + m16*h16 - m12*h12  # incorrect
+    COP = Qe/Qg
+    fitness = COP
+    # C_COPs.append(COP)
+    # Qgs.append(Qg)
+    
+    #fitness = 1.0 /np.abs(fitness - desired_output)
+    
+    return fitness
+
+num_generations = 500
+num_parents_mating = 4
+
+fitness_function = fitness_func
+
+sol_per_pop = 80
+num_genes = 4
+
+init_range_low = 0
+init_range_high = 70
+
+parent_selection_type = "sss"
+keep_parents = 1
+
+crossover_type = "single_point"
+
+mutation_type = "random"
+mutation_percent_genes = 10
+def on_gen(ga_instance):
+    print("Generation : ", ga_instance.generations_completed)
+    print("Fitness of the best solution :", ga_instance.best_solution()[1])
+    
+ga_instance = pygad.GA(num_generations=num_generations,
+                       num_parents_mating=num_parents_mating,
+                       fitness_func=fitness_function,
+                       sol_per_pop=sol_per_pop,
+                       num_genes=num_genes,
+                       init_range_low=init_range_low,
+                       init_range_high=init_range_high,
+                       parent_selection_type=parent_selection_type,
+                       keep_parents=keep_parents,
+                       crossover_type=crossover_type,
+                       mutation_type=mutation_type,
+                       mutation_percent_genes=mutation_percent_genes)
+
+ga_instance.run()
+
+ga_instance.plot_fitness()
+
+solution, solution_fitness, solution_idx = ga_instance.best_solution()
+
+optimal_P_low = round((( solution[0] - 0) /(100 - 0)) * (4.8 - 0.676)+0.676,2)
+optimal_P_high = round(((solution[1] - 0) / (100 - 0)) * (10 - 4.8) + 4.8,2)
+optimal_C_low = round(solution[2],2)
+optimal_C_high = round(solution[3],2)
+
+print(f"Parameters of the best solution : Lower system pressure {optimal_P_low}kPa ;\
+       Upper system pressure {optimal_P_high}kPa ; Lower LiBr concentration {optimal_C_low}% ; \
+           Upper LiBr concentration {optimal_C_high}%")
+print(f"Fitness value of the best solution = {solution_fitness}")
+print(f"Index of the best solution : {solution_idx}")
+
