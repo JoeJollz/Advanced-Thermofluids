@@ -724,18 +724,18 @@ plt.show()
 
 
 desired_output = 1
-def fitness_func(ga_instance, solution, solution_idx):
-    P_low = (( solution[0] - 0) /(100 - 0)) * (4.8 - 0.676)+0.676
+def LiBr_cycle_fitness(ga_instance, solution_LiBr, solution_idx_LiBr):
+    P_low = (( solution_LiBr[0] - 0) /(100 - 0)) * (4.8 - 0.676)+0.676
     if P_low <0.676:
         return -np.inf
-    P_high = ((solution[1] - 0) / (100 - 0)) * (10 - 4.8) + 4.8
+    P_high = ((solution_LiBr[1] - 0) / (100 - 0)) * (10 - 4.8) + 4.8
    # rescaled_number = ((original_number - original_min) / (original_max - original_min)) * (target_max - target_min) + target_min
     if  P_high< (P_low+0.5) or P_high> 10 or P_high<4.8:
         return -np.inf
-    C_low = solution[2]
+    C_low = solution_LiBr[2]
     if C_low < 40:
         return -np.inf
-    C_high = solution[3]
+    C_high = solution_LiBr[3]
     if C_high<C_low or C_high > 70:
         return -np.inf
     
@@ -795,7 +795,7 @@ def fitness_func(ga_instance, solution, solution_idx):
     # to saturated liquid, as stream 16 is already working in the superheated region. 
     
     Tsat = Sat_T_P(P_high)  # T for stream 16 always has to be greater than Tsat.
-    h16 = H_vap_PT(P_high,  76.76)
+    h16 = H_vap_PT(P_high,  Tsat+2) # was originally 76
     Qc = m16*h16 - m17*h17 # correct
     Qg = m13*h13 + m16*h16 - m12*h12  # incorrect
     COP = Qe/Qg
@@ -810,7 +810,7 @@ def fitness_func(ga_instance, solution, solution_idx):
 num_generations = 500
 num_parents_mating = 4
 
-fitness_function = fitness_func
+fitness_function = LiBr_cycle_fitness
 
 sol_per_pop = 80
 num_genes = 4
@@ -846,16 +846,281 @@ ga_instance.run()
 
 ga_instance.plot_fitness()
 
-solution, solution_fitness, solution_idx = ga_instance.best_solution()
+solution_LiBr, solution_fitness, solution_idx_LiBr = ga_instance.best_solution()
 
-optimal_P_low = round((( solution[0] - 0) /(100 - 0)) * (4.8 - 0.676)+0.676,2)
-optimal_P_high = round(((solution[1] - 0) / (100 - 0)) * (10 - 4.8) + 4.8,2)
-optimal_C_low = round(solution[2],2)
-optimal_C_high = round(solution[3],2)
+optimal_P_low = round((( solution_LiBr[0] - 0) /(100 - 0)) * (4.8 - 0.676)+0.676,2)
+optimal_P_high = round(((solution_LiBr[1] - 0) / (100 - 0)) * (10 - 4.8) + 4.8,2)
+T_superheated = Sat_T_P(optimal_P_high)
+optimal_C_low = round(solution_LiBr[2],2)
+optimal_C_high = round(solution_LiBr[3],2)
 
 print(f"Parameters of the best solution : Lower system pressure {optimal_P_low}kPa ;\
        Upper system pressure {optimal_P_high}kPa ; Lower LiBr concentration {optimal_C_low}% ; \
            Upper LiBr concentration {optimal_C_high}%")
 print(f"Fitness value of the best solution = {solution_fitness}")
-print(f"Index of the best solution : {solution_idx}")
+print(f"Index of the best solution : {solution_idx_LiBr}")
 
+# Therefore to inputting all the optimal parameters to return temps and enthalpies at all point ##
+#input solution here into a function
+
+def Final_LiBr_values(optimal_P_low, optimal_P_high, optimal_C_low, optimal_C_high):
+    
+    LiBr_system = {}
+    
+    t17 = Sat_T_P(optimal_P_high) # sat T of liquid water
+    #T = Sat_T_P(4.8)
+    h17 = WaterSat_H_PT(optimal_P_high, t17)  # sat liquid water high pressure
+    
+    
+    h18 = h17   # expansion value, H18 is at the low pressure state now.
+    hf = WaterSat_H_PT(optimal_P_low, Sat_T_P(optimal_P_low))
+    hg = SteamSat_H_PT(optimal_P_low, Sat_T_P(optimal_P_low)) 
+    vapor_quality_18 = (h18-hf)/(hg-hf)
+    
+    t19 = Sat_T_P(optimal_P_low)
+    h19 = SteamSat_H_PT(optimal_P_low, t19) # sat vapor low pressure
+    
+    m19 = Qe/(h19-h18) #kg/s 
+    m18 = m17 = m16 = m19
+    t18 = t19 
+    
+    rt10 = rt__(optimal_P_low, C, D, E)
+    t10 = t__(optimal_C_low, rt10, B, A)
+    h10 = H_Xt(optimal_C_low, t10, A_t1, B_t1, C_t1)
+    
+    m15 = -m19/(1-(optimal_C_high/optimal_C_low))
+    m14 = m13 = m15
+    
+    m10 = optimal_C_high/optimal_C_low*m15
+    m11 = m12 = m10 
+    
+    h11 = (m10*h10+Qpump)/m11 
+    t11 = t__(optimal_C_low, rt__(optimal_C_low, C, D, E), B, A)
+    
+    # for h15 we assume a vapor quality of 0.005, after the expansion valve. hence 
+    # h15 = h_LiBr_solution + h15_vapor (0.005)
+    hf = WaterSat_H_PT(optimal_P_low, Sat_T_P(optimal_P_low))
+    hg = SteamSat_H_PT(optimal_P_low, Sat_T_P(optimal_P_low))
+    vapor_quality_15 = 0.005
+    h15_steam_compo = vapor_quality_15*(hg-hf)+hf
+    rt15 = rt__(optimal_P_low, C, D, E)
+    t15 = t__(optimal_C_high, rt15, B, A)
+    h15 = H_Xt(optimal_C_high, t15, A_t1, B_t1, C_t1) + h15_steam_compo 
+    
+    h14 = h15
+    t14 = t__(optimal_C_high, rt__(optimal_C_high, C, D, E), B, A)
+    
+    rt13 = rt__(optimal_P_high, C, D, E)
+    t13 = t__(optimal_C_high, rt13, B, A)
+    h13 = H_Xt(optimal_C_high, t13, A_t1, B_t1, C_t1)
+    
+    # Heat exhanger balance
+    # Stream 1 energy balance 
+    Q_he = m13*h13 - m14*h14
+    # Stream 2 energy balance
+    h12 = (m11*h11 + Q_he)/m12
+    t12 = t__(optimal_C_low, rt__(optimal_C_low, C, D, E), B, A)
+    
+    
+    # Solving for stream 16
+    # firstly working on the condensor, we know there is a difference of saturated vapor 
+    # to saturated liquid, as stream 16 is already working in the superheated region. 
+    
+    Tsat = Sat_T_P(optimal_P_high)  # T for stream 16 always has to be greater than Tsat.
+    h16 = H_vap_PT(optimal_P_high,  Tsat+2) # was originally 76
+    Qc = m16*h16 - m17*h17 # correct
+    Qg = m13*h13 + m16*h16 - m12*h12  # incorrect
+    COP = Qe/Qg
+    fitness = COP
+    # C_COPs.append(COP)
+    # Qgs.append(Qg)
+    
+    
+    ## can I loop this so its auto and pretty?
+    LiBr_system['Stream 16 - Temperature (Deg Cel)'] = Tsat+2
+    LiBr_system['Stream 16 - Pressure (kPa)'] = optimal_P_high
+    LiBr_system['Stream 16 - Enthalpy (kJ/kg)'] = h16
+    
+    LiBr_system['Stream 17 - Temperature (Deg Cel)'] = t17
+    LiBr_system['Stream 17 - Pressure (kPa)'] = optimal_P_high
+    LiBr_system['Stream 17 - Enthalpy (kJ/kg)'] = h17
+    
+    LiBr_system['Stream 18 - Temperature (Deg Cel)'] = t18
+    LiBr_system['Stream 18 - Pressure (kPa)'] = optimal_P_low
+    LiBr_system['Stream 18 - Enthalpy (kJ/kg)'] = h18
+    
+    LiBr_system['Stream 19 - Temperature (Deg Cel)'] = t19
+    LiBr_system['Stream 19 - Pressure (kPa)'] = optimal_P_low
+    LiBr_system['Stream 19 - Enthalpy (kJ/kg)'] = h19
+    
+    LiBr_system['Stream 10 - Temperature (Deg Cel)'] = t10
+    LiBr_system['Stream 10 - Pressure (kPa)'] = optimal_P_low
+    LiBr_system['Stream 10 - Enthalpy (kJ/kg)'] = h10
+    LiBr_system['Stream 10 - LiBr concentration (%)'] = optimal_C_low
+    
+    LiBr_system['Stream 11 - Temperature (Deg Cel)'] = t11
+    LiBr_system['Stream 11 - Pressure (kPa)'] = optimal_P_high
+    LiBr_system['Stream 11 - Enthalpy (kJ/kg)'] = h11
+    LiBr_system['Stream 11 - LiBr concentration (%)'] = optimal_C_low
+    
+    LiBr_system['Stream 12 - Temperature (Deg Cel)'] = t12
+    LiBr_system['Stream 12 - Pressure (kPa)'] = optimal_P_high
+    LiBr_system['Stream 12 - Enthalpy (kJ/kg)'] = h12
+    LiBr_system['Stream 12 - LiBr concentration (%)'] = optimal_C_low
+    
+    LiBr_system['Stream 13 - Temperature (Deg Cel)'] = t13
+    LiBr_system['Stream 13 - Pressure (kPa)'] = optimal_P_high
+    LiBr_system['Stream 13 - Enthalpy (kJ/kg)'] = h13
+    LiBr_system['Stream 13 - LiBr concentration (%)'] = optimal_C_high
+    
+    LiBr_system['Stream 14 - Temperature (Deg Cel)'] = t14
+    LiBr_system['Stream 14 - Pressure (kPa)'] = optimal_P_high
+    LiBr_system['Stream 14 - Enthalpy (kJ/kg)'] = h14
+    LiBr_system['Stream 14 - LiBr concentration (%)'] = optimal_C_high
+    
+    LiBr_system['Stream 15 - Temperature (Deg Cel)'] = t15
+    LiBr_system['Stream 15 - Pressure (kPa)'] = optimal_P_low
+    LiBr_system['Stream 15 - Enthalpy (kJ/kg)'] = h15
+    LiBr_system['Stream 15 - LiBr concentration (%)'] = optimal_C_high
+    
+    LiBr_system['Q generator (kW)'] = Qg
+    
+    
+    
+    #fitness = 1.0 /np.abs(fitness - desired_output)
+    
+    ## PH diagram
+    #loop over the saturated t and P, get the h values in a seperate array
+    #plot P vs H
+    #plot each stream point on the PH diagram
+    
+    
+    return LiBr_system
+
+LiBr_system = Final_LiBr_values(optimal_P_low, optimal_P_high, optimal_C_low, optimal_C_high)
+
+T_to_beat = max(LiBr_system['Stream 12 - Temperature (Deg Cel)'], LiBr_system['Stream 16 - Temperature (Deg Cel)'])
+
+#%%
+### Solar water cycle
+
+def Solar_cycle_fitness(ga_instance_2, solution_solar, sol_ind_solar):
+    P_low = (solution_solar[0]-0)/(10-0)*(4.8-0.68)+0.68
+    if P_low<0.68 or P_low>2:
+        return -np.inf
+    P_high = (solution_solar[1]-0) /(10-0)*(9.5-4.9)+4.9
+    if P_high >9.5 or P_high<4.9:
+        return -np.inf
+
+    
+    mass_flow = (solution_solar[2]-0)/(10-0)*(1-0.001)-0.001
+    if mass_flow >1 or mass_flow<0.0001:
+        return -np.inf
+    # mass_flow = solution_solar[2]
+    # if mass_flow<0:
+    #     return -np.inf
+    
+    m1 = m4 = m3 = m2 = mass_flow
+    
+    Qg = LiBr_system['Q generator (kW)'] #kW this value must be equal to the Qgenerator for the LiBr cycle.
+    
+    # ensure energy transfer from stream 2 into the generator of the LiBr cycle
+    Ttarget = max(LiBr_system['Stream 12 - Temperature (Deg Cel)'], LiBr_system['Stream 16 - Temperature (Deg Cel)'])
+    superheat_added = 5
+    t2 = Ttarget+superheat_added
+    h2 = H_vap_PT(P_high, t2)
+    
+    t1 = Sat_T_P(P_low) # saturated vapor
+    h1 = SteamSat_H_PT(P_low, t1)
+    
+    print('h1 : ', h1)
+    print('h2: ', h2)
+    print('mass flow: ', m1)
+    
+    t3 = Sat_T_P(P_high)
+    h3 = WaterSat_H_PT(P_high, t3)
+    
+    h4 = h3
+    hf = WaterSat_H_PT(P_low, Sat_T_P(P_low))
+    hg = SteamSat_H_PT(P_low, Sat_T_P(P_low)) 
+    vapor_quality_4 = (h4-hf)/(hg-hf)
+    
+    print('h1: ', h1)
+    print('h4: ', h4)
+    print('mass flow: ', m1)
+    
+    Qsolar = m1*h1 - m4*h4
+    print('Qsolar required: ', Qsolar)
+    
+    # condensor energy balance
+    #h2 = (Qg +m3*h3)/m2
+    # check if h2 is greater then the Tsat of the P_high, to ensure superheated vapor
+    # is present after the comp. 
+    h_sat_vapor = SteamSat_H_PT(P_high, Sat_T_P(P_high))
+    if h2 <= h_sat_vapor:
+        print('Stream 2 is NOT a superheated vapor, re-evaluate calculations')
+        print('Current enthalpy: ', h2, 'Sat enthalpy vapor: ', h_sat_vapor)
+        return -np.inf
+    
+    Q_comp = m2*h2 - m1*h1
+    if Q_comp<0:
+        print('Error compressor negative')
+        return -np.inf
+    print('Compressor input energy: ', Q_comp)
+    
+   # fitness = Q_comp/Qsolar # hence we are trying to make Qsolar small. 
+    # TO DO: may need to add on some constraints to this fitness, e.g. mass flow rate, energy intake via compressor.
+    fitness = 1/Qsolar
+    
+    return fitness
+
+num_generations = 500
+num_parents_mating = 4
+
+fitness_function = Solar_cycle_fitness
+
+sol_per_pop = 80
+num_genes = 4
+
+init_range_low = 0
+init_range_high = 10
+
+parent_selection_type = "sss"
+keep_parents = 1
+
+crossover_type = "single_point"
+
+mutation_type = "random"
+mutation_percent_genes = 10
+def on_gen(ga_instance):
+    print("Generation : ", ga_instance.generations_completed)
+    print("Fitness of the best solution :", ga_instance.best_solution()[1])
+    
+ga_instance = pygad.GA(num_generations=num_generations,
+                       num_parents_mating=num_parents_mating,
+                       fitness_func=fitness_function,
+                       sol_per_pop=sol_per_pop,
+                       num_genes=num_genes,
+                       init_range_low=init_range_low,
+                       init_range_high=init_range_high,
+                       parent_selection_type=parent_selection_type,
+                       keep_parents=keep_parents,
+                       crossover_type=crossover_type,
+                       mutation_type=mutation_type,
+                       mutation_percent_genes=mutation_percent_genes)
+
+ga_instance.run()
+
+ga_instance.plot_fitness()
+
+solution_solar, solution_fitness_solar, solution_idx_solar = ga_instance.best_solution()
+
+optimal_P_low_solar = round((( solution_solar[0] - 0) /(10 - 0)) * (4.8 - 0.68)+0.68,2)
+optimal_P_high_solar = round(((solution_solar[1] - 0) / (10 - 0)) * (9.5 - 4.9) + 4.9,2)
+T_superheated_solar = Sat_T_P(optimal_P_high)
+optimal_mass_flow = round(((solution_solar[2]-0)/(10-0)*(1-0.001)-0.001),7)
+#optimal_mass_flow = round(solution_solar[2],2)
+print('---------- SOLAR CYCLE PARAMETERS ------------------------------------')
+print(f"Parameters of the best solution : Lower system pressure {optimal_P_low_solar}kPa ;\
+       Upper system pressure {optimal_P_high}kPa ; Mass Flow {optimal_mass_flow} kg/s")
+print(f"Fitness value of the best solution = {solution_fitness_solar}")
