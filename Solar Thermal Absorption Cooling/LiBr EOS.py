@@ -3,6 +3,7 @@
 Created on Sat Mar 30 15:21:59 2024
 
 @author: jrjol
+## testing
 """
 import numpy as np
 from scipy.optimize import fsolve
