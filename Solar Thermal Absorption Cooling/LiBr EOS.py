@@ -1124,3 +1124,71 @@ print('---------- SOLAR CYCLE PARAMETERS ------------------------------------')
 print(f"Parameters of the best solution : Lower system pressure {optimal_P_low_solar}kPa ;\
        Upper system pressure {optimal_P_high}kPa ; Mass Flow {optimal_mass_flow} kg/s")
 print(f"Fitness value of the best solution = {solution_fitness_solar}")
+print('----------------------------------------------------------------------')
+
+def Final_Solar_values(optimal_P_low_solar, optimal_P_high_solar, T_superheated_solar, optimal_mass_flow):
+    Solar_system = {}
+    
+    
+    m1 = m4 = m3 = m2 = optimal_mass_flow
+    
+    Qg = LiBr_system['Q generator (kW)'] #kW this value must be equal to the Qgenerator for the LiBr cycle.
+    
+    # ensure energy transfer from stream 2 into the generator of the LiBr cycle
+    Ttarget = max(LiBr_system['Stream 12 - Temperature (Deg Cel)'], LiBr_system['Stream 16 - Temperature (Deg Cel)'])
+    superheat_added = 20
+    t2 = Ttarget+superheat_added
+    h2 = H_vap_PT(optimal_P_high_solar, t2)
+    
+    t1 = Sat_T_P(optimal_P_low_solar) # saturated vapor
+    h1 = SteamSat_H_PT(optimal_P_low_solar, t1)
+        
+    t3 = Sat_T_P(optimal_P_high_solar)
+    h3 = WaterSat_H_PT(optimal_P_high_solar, t3)
+    
+    h4 = h3
+    t4 = t1
+    hf = WaterSat_H_PT(optimal_P_low_solar, Sat_T_P(optimal_P_low_solar))
+    hg = SteamSat_H_PT(optimal_P_low_solar, Sat_T_P(optimal_P_low_solar)) 
+    vapor_quality_4 = (h4-hf)/(hg-hf)
+
+    Qsolar = m1*h1 - m4*h4
+    
+    # condensor energy balance
+    #h2 = (Qg +m3*h3)/m2
+    # check if h2 is greater then the Tsat of the P_high, to ensure superheated vapor
+    # is present after the comp. 
+    h_sat_vapor = SteamSat_H_PT(P_high, Sat_T_P(P_high))
+    if h2 <= h_sat_vapor:
+        print('Stream 2 is NOT a superheated vapor, re-evaluate calculations')
+        print('Current enthalpy: ', h2, 'Sat enthalpy vapor: ', h_sat_vapor)
+        return -np.inf
+    
+    Q_comp = m2*h2 - m1*h1
+    if Q_comp<0:
+        print('Error compressor negative')
+        return -np.inf
+    
+    Solar_system['Stream 1 - Temperature (Deg Cel)'] = t1
+    Solar_system['Stream 1 - Pressure (kPa)'] = optimal_P_low_solar
+    Solar_system['Stream 1 - Enthalpy (kJ/kg)'] = h1
+    
+    Solar_system['Stream 2 - Temperature (Deg Cel)'] = t2
+    Solar_system['Stream 2 - Pressure (kPa)'] = optimal_P_high_solar
+    Solar_system['Stream 2 - Enthalpy (kJ/kg)'] = h2
+    
+    Solar_system['Stream 3 - Temperature (Deg Cel)'] = t3
+    Solar_system['Stream 3 - Pressure (kPa)'] = optimal_P_high_solar
+    Solar_system['Stream 3 - Enthalpy (kJ/kg)'] = h3
+    
+    Solar_system['Stream 4 - Temperature (Deg Cel)'] = t4
+    Solar_system['Stream 4 - Pressure (kPa)'] = optimal_P_low_solar
+    Solar_system['Stream 4 - Enthalpy (kJ/kg)'] = h4
+    
+    Solar_system['Q solar (kW)'] = Qsolar
+    
+    return Solar_system
+
+Solar_system = Final_Solar_values(optimal_P_low_solar, optimal_P_high_solar, T_superheated_solar, optimal_mass_flow)
+
+
