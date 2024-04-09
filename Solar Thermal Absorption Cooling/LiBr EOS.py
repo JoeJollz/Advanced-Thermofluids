@@ -959,7 +959,12 @@ def Final_LiBr_values(optimal_P_low, optimal_P_high, optimal_C_low, optimal_C_hi
     h15 = H_Xt(optimal_C_high, t15, A_t1, B_t1, C_t1) + h15_steam_compo 
     
     h14 = h15
-    t14 = t__(optimal_C_high, rt__(optimal_C_high, C, D, E), B, A)
+    #t14 = t__(optimal_C_high, rt__(optimal_C_high, C, D, E), B, A)
+    t14 = 20
+    P14 = P__(rT__(optimal_C_high, t14, A, B), C, D, E)
+    while abs(P14-optimal_P_low) < 0.5:
+        t14 += 0.01
+        P14 = P__(rT__(optimal_C_high, t14, A, B), C, D, E)
     
     rt13 = rt__(optimal_P_high, C, D, E)
     t13 = t__(optimal_C_high, rt13, B, A)
