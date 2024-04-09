@@ -251,6 +251,57 @@ Test_Temp_sat = Sat_T_P(100)
 test_superheated = H_vap_PT(10, 95)
 
 #%%
+# IAPWS - Section 6.3.1 (backwards equation for T(p,h)).
+# Suitabel for superheated vapor with pressures less than 4MPa.
+
+def Superheated_T_pH(P, H):
+    '''
+    Calculates the temperture of superheated vapor from pressure and enthalpy
+    input.
+
+    Parameters
+    ----------
+    P : float
+        Pressure of the superheated vapor in kPa.
+    H : float
+        Enthalpy of the superheated vapor in kJ/kg.
+
+    Returns
+    -------
+    Temperature : float
+        Temperature of the vapor in deg Cel.
+
+    '''
+    
+    eta = H/2000
+    pi = P / 1000
+    
+    I = [0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 2, 2, 2, \
+         3, 3, 4, 4, 4, 5, 5, 5, 6, 6, 7]
+    J = [0, 1, 2, 3, 7, 20, 0, 1, 2, 3, 7, 9, 11, 18, 44, 0, 2, 7, 36, 38, 40,\
+         42, 44, 24, 44, 12, 32, 44, 32, 36, 42, 34, 44, 28]
+    n = [ 0.10898952318288e+4, 0.84951654495535e+3, -0.10781748091826e+3, \
+        0.33153654801263e+2, -0.74232016790248e+1, 0.11765048724356e+2, \
+        0.18445749355790e+1, -0.41792700549624e+1, 0.62478196935812e+1, \
+        -0.17344563108114e+2, -0.20058176862096e+3, 0.27196065473796e+3, \
+        -0.45511318285818e+3, 0.30919688604755e+4, 0.25226640357872e+6, \
+        -0.61707422868339e-2, -0.31078046629583, 0.11670873077107e+2, \
+        0.12812798404046e+9, -0.98554909623276e+9,  0.28224546973002e+10, \
+        -0.35948971410703e+10, 0.17227349913197e+10, -0.13551334240775e+5, \
+        0.12848734664650e+8, 0.13865724283226e+1, 0.23598832556514e+6, \
+        -0.13105236545054e+8,  0.73999835474766e+4, -0.55196697030060e+6, \
+        0.37154085996233e+7, 0.19127729239660e+5, -0.41535164835634e+6, \
+        -0.62459855192507e+2]
+        
+    sum1 = 0
+    for i in range(0, 34):
+        sum1 += n[i]*pi**I[i]*(eta-2.1)**J[i]
+    
+    Temperature = sum1 - 273.15
+    return Temperature
+
+
+#%%
 
 X_initial = 55 # initial concentration guess 
 tol = 10e-3
