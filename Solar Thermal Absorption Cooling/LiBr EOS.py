@@ -1070,7 +1070,7 @@ def Solar_cycle_fitness(ga_instance_2, solution_solar, sol_ind_solar):
         return -np.inf
 
     
-    mass_flow = (solution_solar[2]-0)/(10-0)*(1-0.001)-0.001
+    mass_flow = (solution_solar[2]-0)/(10-0)*(0.1-0.001)+0.001
     if mass_flow >1 or mass_flow<0.0001:
         return -np.inf
     # mass_flow = solution_solar[2]
@@ -1175,7 +1175,7 @@ solution_solar, solution_fitness_solar, solution_idx_solar = ga_instance.best_so
 optimal_P_low_solar = round((( solution_solar[0] - 0) /(10 - 0)) * (4.8 - 0.68)+0.68,2)
 optimal_P_high_solar = round(((solution_solar[1] - 0) / (10 - 0)) * (9.5 - 4.9) + 4.9,2)
 T_superheated_solar = Sat_T_P(optimal_P_high)
-optimal_mass_flow = round(((solution_solar[2]-0)/(10-0)*(1-0.001)-0.001),7)
+optimal_mass_flow = round(((solution_solar[2]-0)/(10-0)*(0.1-0.001)+0.001),7)
 #optimal_mass_flow = round(solution_solar[2],2)
 print('---------- SOLAR CYCLE PARAMETERS ------------------------------------')
 print(f"Parameters of the best solution : Lower system pressure {optimal_P_low_solar}kPa ;\
