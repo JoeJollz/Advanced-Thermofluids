@@ -960,6 +960,7 @@ def Final_LiBr_values(optimal_P_low, optimal_P_high, optimal_C_low, optimal_C_hi
     
     h14 = h15
     #t14 = t__(optimal_C_high, rt__(optimal_C_high, C, D, E), B, A)
+    # temp estimator for stream 16, lazily replicating a backwards calc.
     t14 = 20
     P14 = P__(rT__(optimal_C_high, t14, A, B), C, D, E)
     while abs(P14-optimal_P_low) < 0.5:
