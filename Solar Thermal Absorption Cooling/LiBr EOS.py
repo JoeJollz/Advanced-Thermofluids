@@ -398,7 +398,12 @@ def t__(X, rt, B, A):
         sum_2 += A[i]*X**i
     t = sum_1 + rt*sum_2
     return t
+#%%
+'''
+Lithium bromide - H2O equations
+Faruque W. 2020.
 
+'''
 
 def X__(t, rt, B, A):
     coeff = np.zeros(4)
@@ -412,43 +417,6 @@ def X__(t, rt, B, A):
     
     return [num for num in s if 40 <= num <= 70][0]
     
-    #return s
-    # x = var('x')
-    # sol = solve(Eq(coeff[3]*x**3 + coeff[2] * x **2 + coeff[1] * x + coeff[0], 0), x)
-    # #print(sol)
-    # # X = None
-    # # for num in sol:
-    # #     # Check if the number is real and within the range
-    # #     print(num)
-    # #     if isinstance(num, (int, float)) and 45 < num <= 70:
-    # #         X= num
-    # #         print('satisfied')
-    # # print('retuning X: ', X)
-    # print(sol)
-    # # X = [n for n in sol if n.is_real][0]
-    
-    # # If all numbers are real, check if they are between 40 and 70
-    # # if all(isinstance(num, float) for num in sol):
-    # #     X = [num for num in sol if 40 <= num <= 70]
-    
-    # # # If all numbers are imaginary, extract the real components and check if they are between 40 and 70
-    # # elif all(isinstance(num, complex) for num in sol):
-    # #     X = [num.real for num in sol if 40 <= num.real <= 70]
-    
-    # # # If there is a mix of real and imaginary numbers, extract the real numbers and check if they are between 40 and 70
-    # # else:
-    # #     X = [num.real for num in sol if isinstance(num, (float, int)) and 40 <= num <= 70]
-    # real_numbers = []
-
-    # # Extract real components if the numbers are complex
-    # numbers = [num.real if isinstance(num, complex) else num for num in sol]
-    # print(numbers[1])
-    
-    # # Check for real numbers between 40 and 70
-    # real_numbers = [num for num in sol if isinstance(num, (float, int)) and 40 <= num <= 70]
-    # #return real_numbers
-    # #print(X, 'X is here')
-    # return numbers[1].real
 
 A_t1 = [-2024.33, 163.309, -4.88161, 6.302948e-2, -2.913705e-4]
 B_t1 = [18.2829, -1.1691757, 3.248041e-2, -4.034184e-4, 1.8520569e-6]
@@ -791,70 +759,66 @@ def LiBr_cycle_fitness(ga_instance, solution_LiBr, solution_idx_LiBr):
         return -np.inf
     
     
-    t17 = Sat_T_P(P_high) # sat T of liquid water
+    t6 = Sat_T_P(P_high) # sat T of liquid water
     #T = Sat_T_P(4.8)
-    h17 = WaterSat_H_PT(P_high, t17)  # sat liquid water high pressure
+    h6 = WaterSat_H_PT(P_high, t6)  # sat liquid water high pressure
     
     
-    h18 = h17   # expansion value, H18 is at the low pressure state now.
+    h7 = h6   # expansion value, H18 is at the low pressure state now.
     hf = WaterSat_H_PT(P_low, Sat_T_P(P_low))
     hg = SteamSat_H_PT(P_low, Sat_T_P(P_low)) 
-    vapor_quality_18 = (h18-hf)/(hg-hf)
+    vapor_quality_7 = (h7-hf)/(hg-hf)
     
-    t19 = Sat_T_P(P_low)
-    h19 = SteamSat_H_PT(P_low, t19) # sat vapor low pressure
+    t8 = Sat_T_P(P_low)
+    h8 = SteamSat_H_PT(P_low, t8) # sat vapor low pressure
     
-    m19 = Qe/(h19-h18) #kg/s 
-    m18 = m17 = m16 = m19
-    t18 = t19 
+    m8 = Qe/(h8-h7) #kg/s 
+    m7 = m6 = m5 = m8
+    t7 = t8 
     
-    rt10 = rt__(P_low, C, D, E)
-    t10 = t__(C_low, rt10, B, A)
-    h10 = H_Xt(C_low, t10, A_t1, B_t1, C_t1)
+    rt9 = rt__(P_low, C, D, E)
+    t9 = t__(C_low, rt9, B, A)
+    h9 = H_Xt(C_low, t9, A_t1, B_t1, C_t1)
     
-    m15 = -m19/(1-(C_high/C_low))
-    m14 = m13 = m15
+    m14 = -m8/(1-(C_high/C_low))
+    m13 = m12 = m14
     
-    m10 = C_high/C_low*m15
-    m11 = m12 = m10 
+    m9 = C_high/C_low*m14
+    m10 = m11 = m9 
     
-    h11 = (m10*h10+Qpump)/m11 
+    h10 = (m9*h9+Qpump)/m10 
     
     # for h15 we assume a vapor quality of 0.005, after the expansion valve. hence 
     # h15 = h_LiBr_solution + h15_vapor (0.005)
     hf = WaterSat_H_PT(P_low, Sat_T_P(P_low))
     hg = SteamSat_H_PT(P_low, Sat_T_P(P_low))
-    vapor_quality_15 = 0.005
-    h15_steam_compo = vapor_quality_15*(hg-hf)+hf
-    rt15 = rt__(P_low, C, D, E)
-    t15 = t__(C_high, rt15, B, A)
-    h15 = H_Xt(C_high, t15, A_t1, B_t1, C_t1) + h15_steam_compo 
-    h14 = h15
+    vapor_quality_14 = 0.005
+    h14_steam_compo = vapor_quality_14*(hg-hf)+hf
+    rt14 = rt__(P_low, C, D, E)
+    t14 = t__(C_high, rt14, B, A)
+    h14 = H_Xt(C_high, t14, A_t1, B_t1, C_t1) + h14_steam_compo 
+    h13 = h14
     
-    rt13 = rt__(P_high, C, D, E)
-    t13 = t__(C_high, rt13, B, A)
-    h13 = H_Xt(C_high, t13, A_t1, B_t1, C_t1)
+    rt12 = rt__(P_high, C, D, E)
+    t12 = t__(C_high, rt12, B, A)
+    h12 = H_Xt(C_high, t12, A_t1, B_t1, C_t1)
     
     # Heat exhanger balance
     # Stream 1 energy balance 
-    Q_he = m13*h13 - m14*h14
+    Q_he = m12*h12 - m13*h13
     # Stream 2 energy balance
-    h12 = (m11*h11 + Q_he)/m12
+    h11 = (m10*h10 + Q_he)/m11
     
     # Solving for stream 16
     # firstly working on the condensor, we know there is a difference of saturated vapor 
     # to saturated liquid, as stream 16 is already working in the superheated region. 
     
     Tsat = Sat_T_P(P_high)  # T for stream 16 always has to be greater than Tsat.
-    h16 = H_vap_PT(P_high,  Tsat+2) # was originally 76
-    Qc = m16*h16 - m17*h17 # correct
-    Qg = m13*h13 + m16*h16 - m12*h12  # incorrect
+    h5 = H_vap_PT(P_high,  Tsat+2)
+    Qc = m5*h5 - m6*h6 # correct
+    Qg = m12*h12 + m5*h5 - m11*h11  # incorrect
     COP = Qe/Qg
     fitness = COP
-    # C_COPs.append(COP)
-    # Qgs.append(Qg)
-    
-    #fitness = 1.0 /np.abs(fitness - desired_output)
     
     return fitness
 
@@ -918,65 +882,68 @@ def Final_LiBr_values(optimal_P_low, optimal_P_high, optimal_C_low, optimal_C_hi
     
     LiBr_system = {}
     
-    t17 = Sat_T_P(optimal_P_high) # sat T of liquid water
+    t6 = Sat_T_P(optimal_P_high) # sat T of liquid water
     #T = Sat_T_P(4.8)
-    h17 = WaterSat_H_PT(optimal_P_high, t17)  # sat liquid water high pressure
+    h6 = WaterSat_H_PT(optimal_P_high, t6)  # sat liquid water high pressure
     
     
-    h18 = h17   # expansion value, H18 is at the low pressure state now.
+    h7 = h6   # expansion value, H18 is at the low pressure state now.
     hf = WaterSat_H_PT(optimal_P_low, Sat_T_P(optimal_P_low))
     hg = SteamSat_H_PT(optimal_P_low, Sat_T_P(optimal_P_low)) 
-    vapor_quality_18 = (h18-hf)/(hg-hf)
+    vapor_quality_7 = (h7-hf)/(hg-hf)
     
-    t19 = Sat_T_P(optimal_P_low)
-    h19 = SteamSat_H_PT(optimal_P_low, t19) # sat vapor low pressure
+    t8 = Sat_T_P(optimal_P_low)
+    h8 = SteamSat_H_PT(optimal_P_low, t8) # sat vapor low pressure
     
-    m19 = Qe/(h19-h18) #kg/s 
-    m18 = m17 = m16 = m19
-    t18 = t19 
+    m8 = Qe/(h8-h7) #kg/s 
+    m7 = m6 = m5 = m8
+    t7 = t8 
     
-    rt10 = rt__(optimal_P_low, C, D, E)
-    t10 = t__(optimal_C_low, rt10, B, A)
-    h10 = H_Xt(optimal_C_low, t10, A_t1, B_t1, C_t1)
+    rt9 = rt__(optimal_P_low, C, D, E)
+    t9 = t__(optimal_C_low, rt9, B, A)
+    h9 = H_Xt(optimal_C_low, t9, A_t1, B_t1, C_t1)
     
-    m15 = -m19/(1-(optimal_C_high/optimal_C_low))
-    m14 = m13 = m15
+    m14 = -m8/(1-(optimal_C_high/optimal_C_low))
+    m13 = m12 = m14
     
-    m10 = optimal_C_high/optimal_C_low*m15
-    m11 = m12 = m10 
+    m9 = optimal_C_high/optimal_C_low*m14
+    m10 = m11 = m9 
     
-    h11 = (m10*h10+Qpump)/m11 
-    t11 = t__(optimal_C_low, rt__(optimal_C_low, C, D, E), B, A)
+    h10 = (m9*h9+Qpump)/m10 
+    #t10 = t__(optimal_C_low, rt__(optimal_C_low, C, D, E), B, A)
+    t10 = t9
     
     # for h15 we assume a vapor quality of 0.005, after the expansion valve. hence 
     # h15 = h_LiBr_solution + h15_vapor (0.005)
     hf = WaterSat_H_PT(optimal_P_low, Sat_T_P(optimal_P_low))
     hg = SteamSat_H_PT(optimal_P_low, Sat_T_P(optimal_P_low))
-    vapor_quality_15 = 0.005
-    h15_steam_compo = vapor_quality_15*(hg-hf)+hf
-    rt15 = rt__(optimal_P_low, C, D, E)
-    t15 = t__(optimal_C_high, rt15, B, A)
-    h15 = H_Xt(optimal_C_high, t15, A_t1, B_t1, C_t1) + h15_steam_compo 
+    vapor_quality_14 = 0.005
+    h14_steam_compo = vapor_quality_14*(hg-hf)+hf
+    rt14 = rt__(optimal_P_low, C, D, E)
+    t14 = t__(optimal_C_high, rt14, B, A)
+    h14 = H_Xt(optimal_C_high, t14, A_t1, B_t1, C_t1) + h14_steam_compo 
     
-    h14 = h15
+    h13 = h14
     #t14 = t__(optimal_C_high, rt__(optimal_C_high, C, D, E), B, A)
     # temp estimator for stream 16, lazily replicating a backwards calc.
-    t14 = 20
-    P14 = P__(rT__(optimal_C_high, t14, A, B), C, D, E)
-    while abs(P14-optimal_P_low) < 0.5:
-        t14 += 0.01
-        P14 = P__(rT__(optimal_C_high, t14, A, B), C, D, E)
+    t13 = 20
+    P13 = P__(rT__(optimal_C_high, t13, A, B), C, D, E)
+    while abs(P13-optimal_P_low) < 0.5:
+        t13 += 0.01
+        P13 = P__(rT__(optimal_C_high, t13, A, B), C, D, E)
+        
     
-    rt13 = rt__(optimal_P_high, C, D, E)
-    t13 = t__(optimal_C_high, rt13, B, A)
-    h13 = H_Xt(optimal_C_high, t13, A_t1, B_t1, C_t1)
+    
+    rt12 = rt__(optimal_P_high, C, D, E)
+    t12 = t__(optimal_C_high, rt12, B, A)
+    h12 = H_Xt(optimal_C_high, t12, A_t1, B_t1, C_t1)
     
     # Heat exhanger balance
     # Stream 1 energy balance 
-    Q_he = m13*h13 - m14*h14
+    Q_he = m12*h12 - m13*h13
     # Stream 2 energy balance
-    h12 = (m11*h11 + Q_he)/m12
-    t12 = t__(optimal_C_low, rt__(optimal_C_low, C, D, E), B, A)
+    h11 = (m10*h10 + Q_he)/m11
+    t11 = t__(optimal_C_low, rt__(optimal_C_low, C, D, E), B, A)
     
     
     # Solving for stream 16
@@ -984,63 +951,140 @@ def Final_LiBr_values(optimal_P_low, optimal_P_high, optimal_C_low, optimal_C_hi
     # to saturated liquid, as stream 16 is already working in the superheated region. 
     
     Tsat = Sat_T_P(optimal_P_high)  # T for stream 16 always has to be greater than Tsat.
-    h16 = H_vap_PT(optimal_P_high,  Tsat+2) # was originally 76
-    Qc = m16*h16 - m17*h17 # correct
-    Qg = m13*h13 + m16*h16 - m12*h12  # incorrect
+    h5 = H_vap_PT(optimal_P_high,  Tsat+2) # was originally 76
+    Qc = m5*h5 - m6*h6 # correct
+    Qg = m12*h12 + m5*h5 - m11*h11  # incorrect
     COP = Qe/Qg
     fitness = COP
     # C_COPs.append(COP)
     # Qgs.append(Qg)
     
+    LiBr_system['Stream 5 - Temperature (Deg Cel)'] = Tsat+2
+    LiBr_system['Stream 5 - Pressure (kPa)'] = optimal_P_high
+    LiBr_system['Stream 5 - Enthalpy (kJ/kg)'] = h5
+    LiBr_system['Stream 5 - Mass flow (kg/s)'] = m5
     
-    ## can I loop this so its auto and pretty?
-    LiBr_system['Stream 16 - Temperature (Deg Cel)'] = Tsat+2
-    LiBr_system['Stream 16 - Pressure (kPa)'] = optimal_P_high
-    LiBr_system['Stream 16 - Enthalpy (kJ/kg)'] = h16
+    LiBr_system['Stream 6 - Temperature (Deg Cel)'] = t6
+    LiBr_system['Stream 6 - Pressure (kPa)'] = optimal_P_high
+    LiBr_system['Stream 6 - Enthalpy (kJ/kg)'] = h6
+    LiBr_system['Stream 6 - Mass flow (kg/s)'] = m6
     
-    LiBr_system['Stream 17 - Temperature (Deg Cel)'] = t17
-    LiBr_system['Stream 17 - Pressure (kPa)'] = optimal_P_high
-    LiBr_system['Stream 17 - Enthalpy (kJ/kg)'] = h17
+    LiBr_system['Stream 7 - Temperature (Deg Cel)'] = t7
+    LiBr_system['Stream 7 - Pressure (kPa)'] = optimal_P_low
+    LiBr_system['Stream 7 - Enthalpy (kJ/kg)'] = h7
+    LiBr_system['Stream 7 - Mass flow (kg/s)'] = m7
     
-    LiBr_system['Stream 18 - Temperature (Deg Cel)'] = t18
-    LiBr_system['Stream 18 - Pressure (kPa)'] = optimal_P_low
-    LiBr_system['Stream 18 - Enthalpy (kJ/kg)'] = h18
+    LiBr_system['Stream 8 - Temperature (Deg Cel)'] = t8
+    LiBr_system['Stream 8 - Pressure (kPa)'] = optimal_P_low
+    LiBr_system['Stream 8 - Enthalpy (kJ/kg)'] = h8
+    LiBr_system['Stream 8 - Mass flow (kg/s)'] = m8
     
-    LiBr_system['Stream 19 - Temperature (Deg Cel)'] = t19
-    LiBr_system['Stream 19 - Pressure (kPa)'] = optimal_P_low
-    LiBr_system['Stream 19 - Enthalpy (kJ/kg)'] = h19
+    LiBr_system['Stream 9 - Temperature (Deg Cel)'] = t9
+    LiBr_system['Stream 9 - Pressure (kPa)'] = optimal_P_low
+    LiBr_system['Stream 9 - Enthalpy (kJ/kg)'] = h9
+    LiBr_system['Stream 9 - LiBr concentration (%)'] = optimal_C_low
+    LiBr_system['Stream 9 - Mass flow (kg/s)'] = m9
     
     LiBr_system['Stream 10 - Temperature (Deg Cel)'] = t10
-    LiBr_system['Stream 10 - Pressure (kPa)'] = optimal_P_low
+    LiBr_system['Stream 10 - Pressure (kPa)'] = optimal_P_high
     LiBr_system['Stream 10 - Enthalpy (kJ/kg)'] = h10
     LiBr_system['Stream 10 - LiBr concentration (%)'] = optimal_C_low
+    LiBr_system['Stream 10 - Mass flow (kg/s)'] = m10
     
     LiBr_system['Stream 11 - Temperature (Deg Cel)'] = t11
     LiBr_system['Stream 11 - Pressure (kPa)'] = optimal_P_high
     LiBr_system['Stream 11 - Enthalpy (kJ/kg)'] = h11
     LiBr_system['Stream 11 - LiBr concentration (%)'] = optimal_C_low
+    LiBr_system['Stream 11 - Mass flow (kg/s)'] = m11
     
     LiBr_system['Stream 12 - Temperature (Deg Cel)'] = t12
     LiBr_system['Stream 12 - Pressure (kPa)'] = optimal_P_high
     LiBr_system['Stream 12 - Enthalpy (kJ/kg)'] = h12
-    LiBr_system['Stream 12 - LiBr concentration (%)'] = optimal_C_low
+    LiBr_system['Stream 12 - LiBr concentration (%)'] = optimal_C_high
+    LiBr_system['Stream 12 - Mass flow (kg/s)'] = m12
     
     LiBr_system['Stream 13 - Temperature (Deg Cel)'] = t13
     LiBr_system['Stream 13 - Pressure (kPa)'] = optimal_P_high
     LiBr_system['Stream 13 - Enthalpy (kJ/kg)'] = h13
     LiBr_system['Stream 13 - LiBr concentration (%)'] = optimal_C_high
+    LiBr_system['Stream 13 - Mass flow (kg/s)'] = m13
     
     LiBr_system['Stream 14 - Temperature (Deg Cel)'] = t14
-    LiBr_system['Stream 14 - Pressure (kPa)'] = optimal_P_high
+    LiBr_system['Stream 14 - Pressure (kPa)'] = optimal_P_low
     LiBr_system['Stream 14 - Enthalpy (kJ/kg)'] = h14
     LiBr_system['Stream 14 - LiBr concentration (%)'] = optimal_C_high
-    
-    LiBr_system['Stream 15 - Temperature (Deg Cel)'] = t15
-    LiBr_system['Stream 15 - Pressure (kPa)'] = optimal_P_low
-    LiBr_system['Stream 15 - Enthalpy (kJ/kg)'] = h15
-    LiBr_system['Stream 15 - LiBr concentration (%)'] = optimal_C_high
+    LiBr_system['Stream 14 - Mass flow (kg/s)'] = m14
     
     LiBr_system['Q generator (kW)'] = Qg
+    
+    
+    x_coord1 = [h5, h6, h7, h8, h9, h10, h11]  # Added h1 to close the loop
+    y_coord1 = [optimal_P_high, optimal_P_high, optimal_P_low, optimal_P_low, optimal_P_low, optimal_P_high, optimal_P_high] # Added optimal_P_low_solar to close the loop
+    labels1 = ['5', '6', '7', '8', '9', '10', '11']
+    
+    
+    x_coord2 = [h9, h10, h11, h12, h13, h14]
+    y_coord2 = [optimal_P_low, optimal_P_high, optimal_P_high, optimal_P_high, optimal_P_high, optimal_P_low]
+    labels2 = ['', '', '', '12', '13', '14']
+    
+    
+    # Calculate saturation curves
+    Sat_liquid_curve = []
+    Sat_vapor_curve = []
+    Plot_pressure = np.linspace(0.68, optimal_P_high*1.5, 100)
+    
+    for pressure in Plot_pressure:
+        Sat_liquid_curve.append(WaterSat_H_PT(pressure, Sat_T_P(pressure)))
+        Sat_vapor_curve.append(SteamSat_H_PT(pressure, Sat_T_P(pressure)))
+    
+    # Plot saturation curves
+    plt.plot(Sat_vapor_curve, Plot_pressure, label='Saturated Vapor Curve')
+    plt.plot(Sat_liquid_curve, Plot_pressure, label='Saturated Liquid Curve')
+    
+    # Plot coordinates with smaller marker size
+    plt.plot(x_coord1, y_coord1, 'ro', markersize=4) # Adjust markersize as needed
+    
+    # Add labels to coordinates with slight offsets
+    # offset = 0.3
+    # for label, x, y in zip(labels1, x_coord1, y_coord1):
+    #     plt.text(x , y + offset, label)
+    plt.text(h9-100, optimal_P_low -0.2, '9')
+    plt.text(h14-50, optimal_P_low -0.35, '14')
+    plt.text(h7+15, optimal_P_low +0.25, '7')
+    plt.text(h10-120, optimal_P_high -0.1 , '10')
+    plt.text(h13-120, optimal_P_high +0.3, '13')
+    plt.text(h11-10, optimal_P_high +0.3, '11')
+    plt.text(h12+40, optimal_P_high +0.3, '12')
+    plt.text(h6+20, optimal_P_high -0.3, '6')
+    plt.text(h5, optimal_P_high +0.3, '5')
+    plt.text(h8+20, optimal_P_low -0.15, '8')
+    
+    plt.plot(x_coord1, y_coord1, 'k-')
+    
+    # Plot coordinates with smaller marker size
+    plt.plot(x_coord2, y_coord2, 'ro', markersize=4) # Adjust markersize as needed
+    plt.plot([h8, h5], [optimal_P_low, optimal_P_high], 'k--')
+    
+    # Add labels to coordinates with slight offsets
+    # offset = -0.3
+    # for label, x, y in zip(labels2, x_coord2, y_coord2):
+    #     plt.text(x , y + offset, label)
+    
+    plt.plot(x_coord2, y_coord2, 'k-')
+
+            
+    # Join coordinates with lines
+    
+    # Set plot labels and title
+    plt.title('LiBr H2O cycle - PH diagram')
+    plt.ylabel('Pressure (kPa)')
+    plt.xlabel('Enthalpy (kJ/kg)')
+    
+    # Add legend
+    plt.legend()
+    
+    # Show plot
+    plt.show()
     
     
     
@@ -1056,7 +1100,7 @@ def Final_LiBr_values(optimal_P_low, optimal_P_high, optimal_C_low, optimal_C_hi
 
 LiBr_system = Final_LiBr_values(optimal_P_low, optimal_P_high, optimal_C_low, optimal_C_high)
 
-T_to_beat = max(LiBr_system['Stream 12 - Temperature (Deg Cel)'], LiBr_system['Stream 16 - Temperature (Deg Cel)'])
+T_to_beat = max(LiBr_system['Stream 11 - Temperature (Deg Cel)'], LiBr_system['Stream 5 - Temperature (Deg Cel)'])
 
 #%%
 ### Solar water cycle
