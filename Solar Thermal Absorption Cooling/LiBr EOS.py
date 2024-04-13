@@ -758,8 +758,14 @@ def LiBr_cycle_fitness(ga_instance, solution_LiBr, solution_idx_LiBr):
     if C_high<C_low or C_high > 70:
         return -np.inf
     
+
     
-    t6 = Sat_T_P(P_high) # sat T of liquid water
+    t6 = Sat_T_P(P_high) # sat T of liquid water # t6 has just flowed out of the condensor, which is wrt to outside air temp
+    # if t6>T_outside then the condenser would not work effectively, and would start to act like a evaportator. 
+    # t5 the inflow stream calculated later in this code is designed to operate at a superheated vapor for P_high,
+    # so t5>T_outside always. 
+    if t6<T_outside:
+        return -np.inf
     #T = Sat_T_P(4.8)
     h6 = WaterSat_H_PT(P_high, t6)  # sat liquid water high pressure
     
