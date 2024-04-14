@@ -1022,6 +1022,10 @@ def Final_LiBr_values(optimal_P_low, optimal_P_high, optimal_C_low, optimal_C_hi
     LiBr_system['Stream 14 - Mass flow (kg/s)'] = m14
     
     LiBr_system['Q generator (kW)'] = Qg
+    LiBr_system['Q absorber (kW)'] = Qa
+    LiBr_system['Q condenser (kW)'] = Qc
+    LiBr_system['COP'] = COP
+
     
     
     x_coord1 = [h5, h6, h7, h8, h9, h10, h11]  # Added h1 to close the loop
