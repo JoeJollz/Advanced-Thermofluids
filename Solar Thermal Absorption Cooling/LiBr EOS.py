@@ -1160,7 +1160,7 @@ def Solar_cycle_fitness(ga_instance_2, solution_solar, sol_ind_solar):
     print('Qsolar required: ', Qsolar)
     
     # condensor energy balance
-    #h2 = (Qg +m3*h3)/m2
+    h2 = (Qg +m3*h3)/m2
     # check if h2 is greater then the Tsat of the P_high, to ensure superheated vapor
     # is present after the comp. 
     h_sat_vapor = SteamSat_H_PT(P_high, Sat_T_P(P_high))
