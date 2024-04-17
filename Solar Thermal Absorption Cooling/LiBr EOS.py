@@ -535,8 +535,8 @@ Ts = Sat_T_P(7.406)
 enthalpy_test= WaterSat_H_PT(7.406, Ts)
 
 
-T_outside = 32
-Qcooling = 10.7
+T_outside = 36
+Qcooling = 7.56
 Qe = Qcooling
 P_high = 7.406 # kPa
 P_low = 0.676 # kPa
@@ -640,8 +640,8 @@ plt.title('Heatmap of COP vs Varying System Pressures')
 plt.show()
 
 
-T_outside = 32
-Qcooling = 10.7
+T_outside = 36
+Qcooling = 7.56
 Qe = Qcooling
 P_high = 4.8 # kPa
 P_low = 0.68 # kPa
