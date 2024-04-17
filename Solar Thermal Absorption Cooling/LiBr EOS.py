@@ -828,7 +828,7 @@ def LiBr_cycle_fitness(ga_instance, solution_LiBr, solution_idx_LiBr):
     
     return fitness
 
-num_generations = 500
+num_generations = 300
 num_parents_mating = 4
 
 fitness_function = LiBr_cycle_fitness
@@ -1185,7 +1185,7 @@ def Solar_cycle_fitness(ga_instance_2, solution_solar, sol_ind_solar):
     
     return fitness
 
-num_generations = 500
+num_generations = 300
 num_parents_mating = 4
 
 fitness_function = Solar_cycle_fitness
