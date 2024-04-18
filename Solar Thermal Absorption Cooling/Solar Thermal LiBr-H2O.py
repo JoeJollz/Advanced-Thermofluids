@@ -574,6 +574,9 @@ def t__(X, rt, B, A):
     t = sum_1 + rt*sum_2
     return t
 
+#%%
+
+
 
 #########################################################################
               ### PART 2.2 - Vapor Compression cycle design ###
