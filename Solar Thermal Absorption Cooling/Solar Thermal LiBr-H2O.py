@@ -85,3 +85,50 @@ def daily_irrad_calc(Day, longitude, phi):
         daily_irradiance_Idh.append(Idh)
         
     return daily_irradiance_Ith, daily_irradiance_Idh, daily_irradiance_Ibn, counter_out_of_hours
+
+# Calculate the summer solstice
+daily_irradiance_Ith, daily_irradiance_Idh, daily_irradiance_Ibn, counter_out_of_hours = daily_irrad_calc(172, longitude, phi)
+
+avg_check = sum(daily_irradiance_Ith)/60.0
+avg_daylight = sum(daily_irradiance_Ith)/(60-counter_out_of_hours)
+print(avg_check)
+x= np.linspace(0,24,60)
+plt.plot(x, daily_irradiance_Ith, marker='', linestyle='-', label = 'Ith')
+plt.plot(x, daily_irradiance_Ibn, marker='', linestyle='-', label = 'Ibn')
+plt.plot(x, daily_irradiance_Idh, marker='', linestyle='-', label = 'Idh')
+plt.axhline(y=avg_check, color='r', linestyle='--', label='Average whole day')
+plt.axhline(y=avg_daylight, color='r', linestyle='--', label='Average during daylight')
+plt.text(x[-27]-0.5, daily_irradiance_Ith[-27]+20, 'Ith', ha='right')
+plt.text(x[-21]+1.2, daily_irradiance_Ibn[-21]+30, 'Ibn', ha='right')
+plt.text(x[-29], daily_irradiance_Idh[-29]+20, 'Idh', ha='right')
+plt.text(x[-23]-1, avg_check+30, 'Average whole day', ha='right')
+plt.text(x[-26], avg_daylight+30, 'Average during daylight', ha='right')
+plt.title('Daily Irradiance (June 21st)')
+plt.xlabel('Time of day (hour)')
+plt.ylabel('Irradiance (W/m2)')
+plt.grid(False)
+plt.show()
+
+
+#plotting for the winter solstice
+daily_irradiance_Ith, daily_irradiance_Idh, daily_irradiance_Ibn, counter_out_of_hours = daily_irrad_calc(355, longitude, phi)
+
+avg_check = sum(daily_irradiance_Ith)/60.0
+avg_daylight = sum(daily_irradiance_Ith)/(60-counter_out_of_hours)
+print(avg_check)
+x= np.linspace(0,24,60)
+plt.plot(x, daily_irradiance_Ith, marker='', linestyle='-', label = 'Ith')
+plt.plot(x, daily_irradiance_Ibn, marker='', linestyle='-', label = 'Ibn')
+plt.plot(x, daily_irradiance_Idh, marker='', linestyle='-', label = 'Idh')
+plt.axhline(y=avg_check, color='r', linestyle='--', label='Average whole day')
+plt.axhline(y=avg_daylight, color='r', linestyle='--', label='Average during daylight')
+plt.text(x[-31], daily_irradiance_Ith[-33]+20, 'Ith', ha='right')
+plt.text(x[-30], daily_irradiance_Ibn[-30]-30, 'Ibn', ha='right')
+plt.text(x[-29], daily_irradiance_Idh[-29]-30, 'Idh', ha='right')
+plt.text(x[-23]-1, avg_check+25, 'Average whole day', ha='right')
+plt.text(x[-26], avg_daylight+25, 'Average during daylight', ha='right')
+plt.title('Daily Irradiance (December 21st)')
+plt.xlabel('Time of day (hour)')
+plt.ylabel('Irradiance (W/m2)')
+plt.grid(False)
+plt.show()
