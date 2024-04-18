@@ -298,6 +298,77 @@ def SteamSat_H_PT(P, T):
     return H
 
 #%%
+# IAPWS - Section 6.2
+# Metastable-Vapor Region- super heated steam values
+def H_vap_PT(P, T): 
+    '''
+    Calculates the enthalpy for superheated steam. Do not use this function and 
+    input a pressure with a temperature lower then the corresponding Tsat, the
+    results will be incorrect and invalid. 
+
+    Parameters
+    ----------
+    P : float
+        Pressure of the vapor in kPa.
+    T : float
+        Temperature of the vapor (deg Cel) (ensure it is greater than the Tsat for the given
+                                  pressure).
+
+    Returns
+    -------
+    H : float
+        enthalpy of superheated steam (kJ/kg).
+
+    '''
+    
+    ### ERROR CHECK ###
+    Tsat = Sat_T_P(P)
+    if T< Tsat:
+         print('ERROR (superheated steam): Temperature inputted is less than the saturated temperature for\
+  the given pressure. Reevaluate your pressure and input temperature')
+         return 
+
+    
+    
+    ### CALCULATION BEGINS HERE ### 
+    
+    JO = [0, 1, -5, -4, -3, -2, -1, 2, 3]
+    nO = [-0.96937268393049e+1, 0.10087275970006e+2, -0.56087911283020e-2, \
+             0.71452738081455e-1, -0.40710498223928, 0.14240819171444e+1, \
+            -0.43839511319450e+1, -0.28408632460772, 0.21268463753307e-1
+            ]
+        
+    I = [1, 1, 1, 1, 2, 2, 2, 3, 3, 4, 4, 5, 5]
+    J = [0, 2, 5, 11, 1, 7, 16, 4, 16, 7, 10, 9, 10]
+    n = [-0.73362260186506, -0.88223831943146e-1, -0.72334555213245e-1, \
+         -0.40813178534455e-2, 0.20097803380207e-2, -0.53045921898642e-1, -0.76190409086970e-2, \
+        -0.63498037657313e-2, -0.86043093028588e-1, 0.75321581522770e-2, -0.79238375446139e-2, \
+        -0.22888160778447e-3, -0.26456501482810e-2]
+        
+    R = 0.461526 # kJ/kgK
+    
+    T = T+ 273.15 # deg cel to kelvin
+    
+    pi = P / 1000 # kPa/kPa
+    tau = 540/T # Kelvin/kelvin
+    
+    sum_1 = 0
+    
+    yO = 0#np.log(pi)
+    for i in range(0,9):
+        sum_1 += nO[i]*JO[i]*tau**(JO[i]-1)
+    yO = sum_1
+    sum_1 = 0
+    for i in range(0, 13):
+        sum_1 += n[i]*pi**I[i]*J[i]*(tau-0.5)**(J[i]-1)
+    yr = sum_1
+    
+    H = tau*R*T*(yO+yr)
+    
+    return H
+
+#%%
+
 
 
 #########################################################################
