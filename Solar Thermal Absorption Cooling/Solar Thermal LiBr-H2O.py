@@ -368,7 +368,41 @@ def H_vap_PT(P, T):
     return H
 
 #%%
+# IAPWS 2007 - Section 8.2
+def Sat_T_P(P):
+    '''
+    Calculates the corresponding saturated temperature, for a given saturated pressure. 
+    
+    Parameters
+    ----------
+    P : Float or int
+        Saturation pressure of water (kPa)
 
+    Returns
+    -------
+    Float
+        Returns the saturation temperature in deg cel for water.
+
+    '''
+    
+    ## suitable within the pressure range 0.611kPa < P < 22000 kPa
+    
+    n = [ 0.11670521452767e+4, -0.72421316703206e+6, -0.17073846940092e+2, \
+        0.12020824702470e+5, -0.32325550322333e+7, 0.14915108613530e+2, \
+        -0.48232657361591e+4, 0.40511340542057e+6, -0.23855557567849, \
+        0.65017534844798e+3
+        ]
+    Beta = (P/1000)**(1/4)
+    
+    E = Beta**2 + n[2]*Beta + n[5]
+    F = n[0]*Beta**2 + n[3]*Beta + n[6]
+    G = n[1]*Beta**2 + n[4]*Beta + n[7]
+    
+    D = 2*G / (-F-(F**2-4*E*G)**(1/2))
+    
+    Ts = (n[9]+D-((n[9]+D)**2-4*(n[8]+n[9]*D))**(1/2))/2
+    
+    return Ts - 273.15 
 
 
 #########################################################################
