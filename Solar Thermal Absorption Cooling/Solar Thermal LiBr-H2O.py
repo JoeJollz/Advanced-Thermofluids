@@ -132,3 +132,42 @@ plt.xlabel('Time of day (hour)')
 plt.ylabel('Irradiance (W/m2)')
 plt.grid(False)
 plt.show()
+
+## Monthly Irradiance Calculation ##
+# Simply looping through the days of each month, then storing the relevant information, 
+# and then plotting this information. 
+daily_irradiance = []
+Monthly_irradiance = []
+Day = 0
+for i, month in enumerate(Months):
+    Days_in_month = Days[i]
+    monthly = 0
+    for j in range(Days_in_month):
+        Day+=1
+        print(Day)
+        daily_irradiance_Ith, daily_irradiance_Idh, daily_irradiance_Ibn, counter_out_of_hours = daily_irrad_calc(Day, longitude, phi)
+        print(counter_out_of_hours)
+        daily_irradiance.append(sum(daily_irradiance_Ith)/(60-counter_out_of_hours))
+        monthly += sum(daily_irradiance_Ith)/(60-counter_out_of_hours)
+    Monthly_irradiance.append(monthly/Days_in_month)
+    
+x = range(1,366)
+plt.plot(x, daily_irradiance)
+plt.ylim(0, 800)
+plt.title('Average Daily Irradiance (during daylight hours) for a year')
+plt.xlabel('Day of the year')
+plt.ylabel('Average daily Irradiance (W/m2)')
+plt.show()
+
+x = Months
+plt.plot(x, Monthly_irradiance)
+plt.xticks(rotation=45, ha='right')
+# Title and labels
+plt.title('Monthly Average Irradiance')
+plt.xlabel('Month')
+plt.ylabel('Average Monthly Irradiance (W/m2)')
+plt.ylim(0, 800)
+plt.show()
+print('--------------------------------------------------------------------------------------------')
+print(f'The average solar irradiance (W/m2) for July, during daylight hours, is: {round(Monthly_irradiance[6],2)}')
+print('--------------------------------------------------------------------------------------------')
