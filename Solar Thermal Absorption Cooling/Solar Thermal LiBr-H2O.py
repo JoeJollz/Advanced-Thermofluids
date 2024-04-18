@@ -180,6 +180,9 @@ print('-------------------------------------------------------------------------
 All of these functions in this code, from the IAPWS have been tested for validity on 
 the Water Tables.
 '''
+## IAPWS 2007
+R = 0.461526 # kJ/kgK
+
 #%%
 ## IAPWS 2007 - Section 5.1
 def WaterSat_H_PT(P,T):  
@@ -452,6 +455,125 @@ def Superheated_T_pH(P, H):
     return Temperature
 
 #%%
+### Calculations from ASHRAE, for LiBr-H2O solution; enthalpies, solution temperature, refrigerant temperature,
+# pressures. 
+# Taken from Faruque M W. 2020.
+tol = 10e-3
+
+def rT__(X, t, A, B): # Equation 3 - Faruque M W. 2020. 
+    '''
+    Function to calculate the refrigerant temperature in deg C. 
+
+    Parameters
+    ----------
+    X : Float
+        Solution concentration (%).
+    t : Float
+        Solution temperature (deg C).
+    A : List
+        Fitted constants - ASHRAE.
+    B : List
+        Fitted constants - ASHRAE.
+
+    Returns
+    -------
+    rT : Float
+        Refrigerant temperature in Deg C.
+    '''
+    #print(X)
+    sum_1 = 0
+    sum_2 = 0
+    for i in range(0,4):
+        sum_1 += B[i]*X**i
+        sum_2 += A[i]*X**i
+    rT = (t - sum_1)/(sum_2)+273.16
+    return rT
+
+
+def P__(rT, C, D, E): # Eqaution 2 - Faruque M W. 2020.
+    '''
+    Function to calculate the saturated pressure (kPa).
+
+    Parameters
+    ----------
+    rT : Float
+        Refrigerant temperature (deg C).
+    C : Float
+        Fitted constants.
+    D : Float
+        Fitted constants.
+    E : Float
+        Fiteed constants.
+
+    Returns
+    -------
+    P : Float
+        Sat pressure (kPa).
+
+    '''
+    ans = C+D/rT + E/rT**2  
+    P = np.exp(ans)   
+    return P
+
+def rt__(P, C, D, E): # Takes in he saturation pressure, produces the sat T.
+    '''
+    Refrigeration temperature in deg C, from the saturation pressure, for the 
+    LiBr-Water solution. 
+    
+
+    Parameters
+    ----------
+    P : flaot
+        The saturation pressure in kPa.
+    C : List or Array
+        constants.
+    D : float
+        constants.
+    E : float
+        constants.
+
+    Returns
+    -------
+    rt : float
+        Refrigeration temperature (deg Cel).
+
+    '''
+
+    rt = (-2*E)/(D+(D**2-4*E*(C-np.log10(P)))**(0.5))-273.16
+    
+    return rt
+
+def t__(X, rt, B, A):
+    '''
+    Returns the LiBr-H20 solution temperature, taking in the concentration of 
+    LiBr in % terms, and the rt, which can be calculated using the above function
+    for the refrigerant temperature, at a given pressure. 
+
+    Parameters
+    ----------
+    X : float
+        Concentration of LiBr in % terms.
+    rt : float
+        Refrigeration temperature in deg C
+    B : Array or List
+        Constants
+    A : Array or List.
+        Constants
+
+    Returns
+    -------
+    t : float
+        Temperature of the solution in deg C.
+
+    '''
+    sum_1 = 0
+    sum_2 = 0
+    for i in range(0,4):
+        sum_1 +=B[i]*X**i
+        sum_2 += A[i]*X**i
+    t = sum_1 + rt*sum_2
+    return t
+
 
 #########################################################################
               ### PART 2.2 - Vapor Compression cycle design ###
