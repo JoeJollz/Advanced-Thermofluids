@@ -687,6 +687,12 @@ def LiBr_cycle_fitness(ga_instance, solution_LiBr, solution_idx_LiBr):
     Fitness function of the LiBr cycle. The fitness in this case is the 
     Coefficient of performance = Qc/Qg. This function will be called repeatedly
     by the Genetic Algorithm.
+    Parameters to optimise for:
+        - Lower system pressure (kPa)
+        - Upper system pressure (kPa)
+        - Lower system LiBr concentration (%)
+        - Upper system LiBr concentration (%)
+
     '''
     
     
@@ -1046,3 +1052,148 @@ LiBr_system = Final_LiBr_values(optimal_P_low, optimal_P_high, optimal_C_low, op
 # than that of the temperature of the generator in the LiBr-H2O cycle to ensure net 
 # energy transfer takes place. Therefore, temperature to beat is:
 T_to_beat = max(LiBr_system['Stream 11 - Temperature (Deg Cel)'], LiBr_system['Stream 5 - Temperature (Deg Cel)'])
+
+# Now, designing an appropriate Vapor Compression cycle to ensure the generator in the 
+# LiBr-H2O cycle recieves its require energy input. 
+
+
+#########################################################################
+              ### PART 2.3 - Vapor Compression cycle design ###
+#########################################################################
+
+solution_fitness_solar=-np.inf
+while solution_fitness_solar<0:
+    '''
+    Occasionally, the GA chooses a poor initial generation, leading to no 
+    solution. One method (the correct method) would be to increase the
+    percentage chance of children chromosome mutatation, hence searching new
+    regions of possible solutions. Another method, would simply be to implement
+    a 'while' loop condition to restart with new initial parameters, whereby a
+    feasible solution can be achieved.  
+    
+    '''
+
+    def Solar_cycle_fitness(ga_instance_2, solution_solar, sol_ind_solar):
+        '''
+        The fitness function of the solar cycle. Minimising the electrical
+        energy input by the compressor. Using a Genetic algorithm to solve for
+        Parameters to optimise for include:
+            - Lower system pressure (kPa)
+            - Upper system pressure (kPa)
+            - Mass flow rate (kg/s)
+
+        '''
+        P_low = (solution_solar[0]-0)/(10-0)*(4.8-0.68)+0.68
+        if P_low<0.68 or P_low>2: # mass from constraints
+            return -np.inf
+        P_high = (solution_solar[1]-0) /(10-0)*(9.5-4.9)+4.9
+        if P_high >9.5 or P_high<4.9: # mass flow constraints
+            return -np.inf
+    
+        
+        mass_flow = (solution_solar[2]-0)/(10-0)*(0.1-0.001)+0.001
+        if mass_flow >1 or mass_flow<0.0001: # mass flow constraints
+            return -np.inf
+
+        
+        m1 = m4 = m3 = m2 = mass_flow # kg/s
+        
+        Qg = LiBr_system['Q generator (kW)'] #kW this value must be equal to the Qgenerator for the LiBr cycle.
+        
+        # ensure energy transfer from stream 2 into the generator of the LiBr cycle
+        Ttarget = max(LiBr_system['Stream 11 - Temperature (Deg Cel)'], LiBr_system['Stream 5 - Temperature (Deg Cel)'])
+
+        t1 = Sat_T_P(P_low) # saturated vapor
+        h1 = SteamSat_H_PT(P_low, t1) # Enthalpy stream 1.
+        
+        t3 = Sat_T_P(P_high) # Temp stream 3 (deg C)
+        h3 = WaterSat_H_PT(P_high, t3) # Enthalpy stream 3 
+        
+        h2 = (Qg +m3*h3)/m2 # Enthalpy stream 2
+        print('Solar condenser energy balance: ', h2*m2 -Qg -m3*h3)
+        t2 = Superheated_T_pH(P_high, h2)
+        # Ensuring the temperature of stream 2 entering the condenser is 
+        # greater then that of the generator temperature, to ensure correct 
+        # energy exchange.
+        if t2 <Ttarget:
+            print('Temperature of solar water entering the generator is not sufficient')
+            print('Temp enter: ', t2, 'Target gen temp: ', Ttarget)
+            return -np.inf
+            
+        
+        
+        h4 = h3 # expansion value, isenthalpic.
+        hf = WaterSat_H_PT(P_low, Sat_T_P(P_low))
+        hg = SteamSat_H_PT(P_low, Sat_T_P(P_low)) 
+        vapor_quality_4 = (h4-hf)/(hg-hf) # liquid vapor mixture.
+        
+        print('h1: ', h1)
+        print('h3: ', h3)
+        print('h4: ', h4)
+        print('mass flow: ', m1)
+        
+        
+        Qsolar = m1*h1 - m4*h4
+        print('Qsolar required: ', Qsolar)
+        
+        # check if h2 is greater then the Tsat of the P_high, to ensure superheated vapor
+        # is present after the comp. 
+        h_sat_vapor = SteamSat_H_PT(P_high, Sat_T_P(P_high))
+        if h2 <= h_sat_vapor:
+            print('Stream 2 is NOT a superheated vapor, re-evaluate calculations')
+            print('Current enthalpy: ', h2, 'Sat enthalpy vapor: ', h_sat_vapor)
+            return -np.inf
+        
+        Q_comp = m2*h2 - m1*h1
+        if Q_comp<0:
+            print('Error compressor negative')
+            return -np.inf
+        print('Compressor input energy: ', Q_comp)
+        
+       # fitness is 1/Qcomp, we are trying to minimise the amount of electical
+       # energy inputted into this system. 
+        fitness = 1/Q_comp
+        print('-----------------------------------------------------------------')
+        
+        return fitness
+
+    num_generations = 500
+    num_parents_mating = 4
+    
+    fitness_function = Solar_cycle_fitness
+    
+    sol_per_pop = 80
+    num_genes = 4
+    
+    init_range_low = 0
+    init_range_high = 10
+    
+    parent_selection_type = "sss"
+    keep_parents = 1
+    
+    crossover_type = "single_point"
+    
+    mutation_type = "random"
+    mutation_percent_genes = 10
+    def on_gen(ga_instance):
+        print("Generation : ", ga_instance.generations_completed)
+        print("Fitness of the best solution :", ga_instance.best_solution()[1])
+        
+    ga_instance = pygad.GA(num_generations=num_generations,
+                           num_parents_mating=num_parents_mating,
+                           fitness_func=fitness_function,
+                           sol_per_pop=sol_per_pop,
+                           num_genes=num_genes,
+                           init_range_low=init_range_low,
+                           init_range_high=init_range_high,
+                           parent_selection_type=parent_selection_type,
+                           keep_parents=keep_parents,
+                           crossover_type=crossover_type,
+                           mutation_type=mutation_type,
+                           mutation_percent_genes=mutation_percent_genes)
+    
+    ga_instance.run()
+    
+    ga_instance.plot_fitness()
+    
+    solution_solar, solution_fitness_solar, solution_idx_solar = ga_instance.best_solution()
