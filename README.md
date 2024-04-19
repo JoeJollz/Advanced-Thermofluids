@@ -6,7 +6,7 @@ Please view the following folder: Solar Thermal Absorption Cooling if you are in
 
 The first cycles working fluid is simply water, whilst the second cycle has 2 working fluids working in the different streams, including; LiBr-H2O and H2O.
 
-![Lithium Bromide - Water Absorption Cooling Cycle](/Advanced-Thermofluids/image.jpg)
+![Lithium Bromide - Water Absorption Cooling Cycle](/LiBrH2O-Vapor Compression.JPG)
 
 ```python
 
