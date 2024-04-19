@@ -830,3 +830,219 @@ print(f"Parameters of the best solution : Lower system pressure {optimal_P_low}k
            Upper LiBr concentration {optimal_C_high}%")
 print(f"Fitness value of the best solution = {solution_fitness}")
 print(f"Index of the best solution : {solution_idx_LiBr}")
+
+# Inputting the optimla values back into the system, to return all the other parameters.
+
+def Final_LiBr_values(optimal_P_low, optimal_P_high, optimal_C_low, optimal_C_high):
+    '''
+    Takes in optimal values, returns the whole working system parameters.
+    Parameters
+    ----------
+    optimal_P_low : Float
+        Lower pressure of the LiBr-H2O cycle (kPa).
+    optimal_P_high : Float
+        Upper pressure of the LiBr-H2O cycle (kPa).
+    optimal_C_low : Float
+        Lower concentration of LiBr (%) present.
+    optimal_C_high : Float
+        Upper concentration of LiBr (%) present.
+
+    Returns
+    -------
+    LiBr_system : Dictionary
+        Every streams, pressure, enthalpy, temperature, flow rate, and LiBr
+        concentation.
+    '''
+    
+    LiBr_system = {} # dictionary to store all the key stream parameter values.
+    
+    t6 = Sat_T_P(optimal_P_high) # sat T of liquid water
+    h6 = WaterSat_H_PT(optimal_P_high, t6)  # sat liquid water high pressure
+    
+    
+    h7 = h6   # expansion value, h7 is at the low pressure state now.
+    hf = WaterSat_H_PT(optimal_P_low, Sat_T_P(optimal_P_low))
+    hg = SteamSat_H_PT(optimal_P_low, Sat_T_P(optimal_P_low)) 
+    vapor_quality_7 = (h7-hf)/(hg-hf)
+    
+    t8 = Sat_T_P(optimal_P_low)
+    h8 = SteamSat_H_PT(optimal_P_low, t8) # sat vapor low pressure
+    
+    m8 = Qe/(h8-h7) #kg/s 
+    m7 = m6 = m5 = m8
+    t7 = t8 
+    
+    rt9 = rt__(optimal_P_low, C, D, E)
+    t9 = t__(optimal_C_low, rt9, B, A)
+    h9 = H_Xt(optimal_C_low, t9, A_t1, B_t1, C_t1)
+    
+    m14 = -m8/(1-(optimal_C_high/optimal_C_low))
+    m13 = m12 = m14
+    
+    m9 = optimal_C_high/optimal_C_low*m14
+    m10 = m11 = m9 
+    
+    h10 = (m9*h9+Qpump)/m10 
+    t10 = t9
+    
+    # for h14 we assume a vapor quality of 0.005, after the expansion valve. hence 
+    # h14 = h_LiBr_solution + h14_vapor (0.005)
+    hf = WaterSat_H_PT(optimal_P_low, Sat_T_P(optimal_P_low))
+    hg = SteamSat_H_PT(optimal_P_low, Sat_T_P(optimal_P_low))
+    vapor_quality_14 = 0.005
+    h14_steam_compo = vapor_quality_14*(hg-hf)+hf
+    rt14 = rt__(optimal_P_low, C, D, E)
+    t14 = t__(optimal_C_high, rt14, B, A)
+    h14 = H_Xt(optimal_C_high, t14, A_t1, B_t1, C_t1) + h14_steam_compo 
+    
+    h13 = h14
+    # temp estimator for stream 16, lazily replicating a backwards calc.
+    t13 = 20
+    P13 = P__(rT__(optimal_C_high, t13, A, B), C, D, E)
+    while abs(P13-optimal_P_low) < 0.5:
+        t13 += 0.01
+        P13 = P__(rT__(optimal_C_high, t13, A, B), C, D, E)
+        
+    
+    
+    rt12 = rt__(optimal_P_high, C, D, E)
+    t12 = t__(optimal_C_high, rt12, B, A)
+    h12 = H_Xt(optimal_C_high, t12, A_t1, B_t1, C_t1)
+    
+    # Heat exhanger balance
+    # Stream 12-13 energy balance 
+    Q_he = m12*h12 - m13*h13
+    # Stream 10-11 energy balance
+    h11 = (m10*h10 + Q_he)/m11
+    t11 = t__(optimal_C_low, rt__(optimal_C_low, C, D, E), B, A)
+    
+    
+    # Solving for stream 5, which is known to be a superheated vapor.
+
+    Tsat = Sat_T_P(optimal_P_high)  # T for stream 5 always has to be greater than Tsat.
+    h5 = H_vap_PT(optimal_P_high,  Tsat+2)
+    Qc = m5*h5 - m6*h6 
+    Qg = m12*h12 + m5*h5 - m11*h11  # input required by generator.
+    COP = Qe/Qg
+    fitness = COP
+    
+    Qa = m8*h8+ m14*h14 -m9*h9 # absorber rejection
+    
+    LiBr_system['Stream 5 - Temperature (Deg Cel)'] = Tsat+2
+    LiBr_system['Stream 5 - Pressure (kPa)'] = optimal_P_high
+    LiBr_system['Stream 5 - Enthalpy (kJ/kg)'] = h5
+    LiBr_system['Stream 5 - Mass flow (kg/s)'] = m5
+    
+    LiBr_system['Stream 6 - Temperature (Deg Cel)'] = t6
+    LiBr_system['Stream 6 - Pressure (kPa)'] = optimal_P_high
+    LiBr_system['Stream 6 - Enthalpy (kJ/kg)'] = h6
+    LiBr_system['Stream 6 - Mass flow (kg/s)'] = m6
+    
+    LiBr_system['Stream 7 - Temperature (Deg Cel)'] = t7
+    LiBr_system['Stream 7 - Pressure (kPa)'] = optimal_P_low
+    LiBr_system['Stream 7 - Enthalpy (kJ/kg)'] = h7
+    LiBr_system['Stream 7 - Mass flow (kg/s)'] = m7
+    
+    LiBr_system['Stream 8 - Temperature (Deg Cel)'] = t8
+    LiBr_system['Stream 8 - Pressure (kPa)'] = optimal_P_low
+    LiBr_system['Stream 8 - Enthalpy (kJ/kg)'] = h8
+    LiBr_system['Stream 8 - Mass flow (kg/s)'] = m8
+    
+    LiBr_system['Stream 9 - Temperature (Deg Cel)'] = t9
+    LiBr_system['Stream 9 - Pressure (kPa)'] = optimal_P_low
+    LiBr_system['Stream 9 - Enthalpy (kJ/kg)'] = h9
+    LiBr_system['Stream 9 - LiBr concentration (%)'] = optimal_C_low
+    LiBr_system['Stream 9 - Mass flow (kg/s)'] = m9
+    
+    LiBr_system['Stream 10 - Temperature (Deg Cel)'] = t10
+    LiBr_system['Stream 10 - Pressure (kPa)'] = optimal_P_high
+    LiBr_system['Stream 10 - Enthalpy (kJ/kg)'] = h10
+    LiBr_system['Stream 10 - LiBr concentration (%)'] = optimal_C_low
+    LiBr_system['Stream 10 - Mass flow (kg/s)'] = m10
+    
+    LiBr_system['Stream 11 - Temperature (Deg Cel)'] = t11
+    LiBr_system['Stream 11 - Pressure (kPa)'] = optimal_P_high
+    LiBr_system['Stream 11 - Enthalpy (kJ/kg)'] = h11
+    LiBr_system['Stream 11 - LiBr concentration (%)'] = optimal_C_low
+    LiBr_system['Stream 11 - Mass flow (kg/s)'] = m11
+    
+    LiBr_system['Stream 12 - Temperature (Deg Cel)'] = t12
+    LiBr_system['Stream 12 - Pressure (kPa)'] = optimal_P_high
+    LiBr_system['Stream 12 - Enthalpy (kJ/kg)'] = h12
+    LiBr_system['Stream 12 - LiBr concentration (%)'] = optimal_C_high
+    LiBr_system['Stream 12 - Mass flow (kg/s)'] = m12
+    
+    LiBr_system['Stream 13 - Temperature (Deg Cel)'] = t13
+    LiBr_system['Stream 13 - Pressure (kPa)'] = optimal_P_high
+    LiBr_system['Stream 13 - Enthalpy (kJ/kg)'] = h13
+    LiBr_system['Stream 13 - LiBr concentration (%)'] = optimal_C_high
+    LiBr_system['Stream 13 - Mass flow (kg/s)'] = m13
+    
+    LiBr_system['Stream 14 - Temperature (Deg Cel)'] = t14
+    LiBr_system['Stream 14 - Pressure (kPa)'] = optimal_P_low
+    LiBr_system['Stream 14 - Enthalpy (kJ/kg)'] = h14
+    LiBr_system['Stream 14 - LiBr concentration (%)'] = optimal_C_high
+    LiBr_system['Stream 14 - Mass flow (kg/s)'] = m14
+    
+    LiBr_system['Q generator (kW)'] = Qg
+    LiBr_system['Q absorber (kW)'] = Qa
+    LiBr_system['Q condenser (kW)'] = Qc
+    LiBr_system['COP'] = COP
+    
+    
+    x_coord1 = [h5, h6, h7, h8, h9, h10, h11]  # Added h1 to close the loop
+    y_coord1 = [optimal_P_high, optimal_P_high, optimal_P_low, optimal_P_low, optimal_P_low, optimal_P_high, optimal_P_high] # Added optimal_P_low_solar to close the loop
+    labels1 = ['5', '6', '7', '8', '9', '10', '11']
+    
+    
+    x_coord2 = [h9, h10, h11, h12, h13, h14]
+    y_coord2 = [optimal_P_low, optimal_P_high, optimal_P_high, optimal_P_high, optimal_P_high, optimal_P_low]
+    labels2 = ['', '', '', '12', '13', '14']
+    
+    ### PLOTTING PH DIAGRAMS ###
+    # Calculate saturation curves
+    Sat_liquid_curve = []
+    Sat_vapor_curve = []
+    Plot_pressure = np.linspace(0.68, optimal_P_high*1.5, 100)
+    
+    for pressure in Plot_pressure:
+        Sat_liquid_curve.append(WaterSat_H_PT(pressure, Sat_T_P(pressure)))
+        Sat_vapor_curve.append(SteamSat_H_PT(pressure, Sat_T_P(pressure)))
+    
+    # Plot saturation curves
+    plt.plot(Sat_vapor_curve, Plot_pressure, label='Saturated Vapor Curve')
+    plt.plot(Sat_liquid_curve, Plot_pressure, label='Saturated Liquid Curve')
+    
+    # Plot coordinates with smaller marker size
+    plt.plot(x_coord1, y_coord1, 'ro', markersize=4) # Adjust markersize as needed
+    
+    plt.text(h9-100, optimal_P_low -0.2, '9')
+    plt.text(h14-50, optimal_P_low -0.35, '14')
+    plt.text(h7+15, optimal_P_low +0.25, '7')
+    plt.text(h10-120, optimal_P_high -0.1 , '10')
+    plt.text(h13-120, optimal_P_high +0.3, '13')
+    plt.text(h11-10, optimal_P_high +0.3, '11')
+    plt.text(h12+40, optimal_P_high +0.3, '12')
+    plt.text(h6+20, optimal_P_high -0.3, '6')
+    plt.text(h5, optimal_P_high +0.3, '5')
+    plt.text(h8+20, optimal_P_low -0.15, '8')
+    plt.plot(x_coord1, y_coord1, 'k-')
+    plt.plot(x_coord2, y_coord2, 'ro', markersize=4) # Adjust markersize as needed
+    plt.plot([h8, h5], [optimal_P_low, optimal_P_high], 'k--')    
+    plt.plot(x_coord2, y_coord2, 'k-')
+
+    plt.title('LiBr H2O cycle - PH diagram')
+    plt.ylabel('Pressure (kPa)')
+    plt.xlabel('Enthalpy (kJ/kg)')
+    
+    plt.legend()
+    plt.show()
+    
+    return LiBr_system
+
+LiBr_system = Final_LiBr_values(optimal_P_low, optimal_P_high, optimal_C_low, optimal_C_high)
+
+# Temperature for the condensor stream of the vapor compression cycle must be greater
+# than that of the temperature of the generator in the LiBr-H2O cycle to ensure net 
+# energy transfer takes place. Therefore, temperature to beat is:
+T_to_beat = max(LiBr_system['Stream 11 - Temperature (Deg Cel)'], LiBr_system['Stream 5 - Temperature (Deg Cel)'])
