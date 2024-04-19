@@ -641,6 +641,39 @@ def H_Xt(X, t, A_t1, B_t1, C_t1):
     ans = sum_1 + t*sum_2 + t**2*sum_3
     return ans
 
+# Faruque W. 2020 -  Table 3 - Entropy constants
+Entropy_constants = {
+    0 : [5.127558e-1, -1.393954e-2, 2.924145e-5, 9.035697e-7],
+    1 : [1.226780e-2, -9.156820e-5, 1.820453e-8, -7.991806e-10],
+    2 : [-1.364895e-5, 1.068904e-7, -1.381109e-9, 1.529784e-11],
+    3 : [1.021501e-8, 0, 0, 0]
+    
+    }
+
+def S_Xt(X, t, Entropy_constants):
+    '''
+    Entropy of the solution
+
+    Parameters
+    ----------
+    X : Float
+        Concentration of LiBr solution (%).
+    t : Float
+        Temperature of solution (Deg C).
+    Entropy_constants : List
+        Fitted constants.
+
+    Returns
+    -------
+    Entropy : Float
+        Entropy of the system (kJ/kgK).
+    '''
+    sum_1 = 0
+    for i in range(0,4):
+        for j in range(0,4):
+            sum_1 += Entropy_constants[i][j]*X**j*t**i
+    return sum_1
+
 #########################################################################
               ### PART 2.2 - Vapor Compression cycle design ###
 #########################################################################
