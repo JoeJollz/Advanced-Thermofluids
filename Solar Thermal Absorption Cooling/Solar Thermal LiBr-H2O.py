@@ -580,9 +580,9 @@ def X__(t, rt, B, A):
 
     Parameters
     ----------
-    t : flaot
+    t : float
         Solution temperature (deg C).
-    rt : flaot
+    rt : float
         Refrigerant temperature.
     B : List
         Fitted constants.
@@ -606,7 +606,40 @@ def X__(t, rt, B, A):
     
     return [num for num in s if 40 <= num <= 70][0]
 
+def H_Xt(X, t, A_t1, B_t1, C_t1):  
+    '''
+    Enthalpy estimate of the saturated liquid solution enthalpy, note, if there
+    is water vapor present also, the enthalpy of that needs to be calculated 
+    also, and then summed. 
 
+    Parameters
+    ----------
+    X : Float
+        Concentration of LiBr (%) present in the saturated solution.
+    t : Float
+        Temperature of solution (deg C).
+    A_t1 : List
+        Fitted constants.
+    B_t1 : List
+        Fitted constants.
+    C_t1 : List
+        Fitted constants.
+
+    Returns
+    -------
+    H : Float
+        Enthalpy of the LiBr saturated soltuion. 
+
+    '''
+    sum_1 = 0
+    sum_2 = 0
+    sum_3 = 0
+    for i in range(0,5):
+        sum_1 += A_t1[i]*X**i
+        sum_2 += B_t1[i]*X**i
+        sum_3 += C_t1[i]*X**i
+    ans = sum_1 + t*sum_2 + t**2*sum_3
+    return ans
 
 #########################################################################
               ### PART 2.2 - Vapor Compression cycle design ###
