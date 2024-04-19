@@ -574,7 +574,37 @@ def t__(X, rt, B, A):
     t = sum_1 + rt*sum_2
     return t
 
-#%%
+def X__(t, rt, B, A):
+    '''
+    Calculates the concentration of the solution (%).
+
+    Parameters
+    ----------
+    t : flaot
+        Solution temperature (deg C).
+    rt : flaot
+        Refrigerant temperature.
+    B : List
+        Fitted constants.
+    A : List
+        Fitted constants.
+
+    Returns
+    -------
+    Float
+        Concentration of LiBr solution (%).
+
+    '''
+    coeff = np.zeros(4)
+    coeff[0] = B[0]+rt*A[0]-t
+    coeff[1] = B[1] + rt * A[1] 
+    coeff[2] = B[2] +rt * A[2]
+    coeff[3] = B[3] +rt * A[3]
+    
+    f = lambda x: coeff[3]*x**3+coeff[2]*x**2 + coeff[1]*x+coeff[0]
+    s =fsolve(f, [100, 50, 0])
+    
+    return [num for num in s if 40 <= num <= 70][0]
 
 
 
