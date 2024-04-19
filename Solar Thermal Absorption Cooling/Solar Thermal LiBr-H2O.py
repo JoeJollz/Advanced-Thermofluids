@@ -1271,7 +1271,7 @@ def Final_Solar_values(optimal_P_low_solar, optimal_P_high_solar, T_superheated_
     h2 = (Qg +m3*h3)/m2
     # check if h2 is greater then the Tsat of the P_high, to ensure superheated vapor
     # is present after the comp. 
-    h_sat_vapor = SteamSat_H_PT(P_high, Sat_T_P(P_high))
+    h_sat_vapor = SteamSat_H_PT(optimal_P_high_solar, Sat_T_P(optimal_P_high_solar))
     if h2 <= h_sat_vapor:
         print('Stream 2 is NOT a superheated vapor, re-evaluate calculations')
         print('Current enthalpy: ', h2, 'Sat enthalpy vapor: ', h_sat_vapor)
