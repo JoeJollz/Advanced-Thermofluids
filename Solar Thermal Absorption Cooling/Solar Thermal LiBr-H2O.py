@@ -1324,3 +1324,212 @@ def Final_Solar_values(optimal_P_low_solar, optimal_P_high_solar, T_superheated_
     return Solar_system
 
 Solar_system = Final_Solar_values(optimal_P_low_solar, optimal_P_high_solar, T_superheated_solar, optimal_mass_flow)
+
+print('---------- SOLAR CYCLE PARAMETERS ------------------------------------')
+print(f"Fitness value of the best solution = {solution_fitness_solar}")
+print(f"Parameters of the best solution : Lower system pressure {optimal_P_low_solar}kPa ;\
+       Upper system pressure {optimal_P_high_solar}kPa ; Mass Flow {optimal_mass_flow} kg/s")
+Qsolar = Solar_system['Q solar (kW)']
+Qcompressor = Solar_system['Q Compressor (kW)']
+print(f"Q solar required: {Qsolar}kW")
+print(f"Q compressor required: {Qcompressor}")
+print('----------------------------------------------------------------------')
+
+#########################################################################
+              ### PART 3 - Additional Information ###
+#########################################################################
+
+'''
+The following code determines the effect on COP of the upper and lower pressures
+on a LiBr-H2O absorption cooling cycle, whilst fixing the upper and lower
+LiBr concentrations (%). A heat map of the results is produced.
+
+Additionally, whilst holding the upper and lower pressures constant, this
+code varies the upper and lower LiBr (%) concentrations of the system. And
+plots a heat map of the resulting effect on COP. 
+'''
+
+# HOLDING PRESSURES CONSTANT #
+T_outside = 36
+P_high = LiBr_system['Stream 5 - Pressure (kPa)'] # upper pressure of LiBr cycle.
+P_low = LiBr_system['Stream 7 - Pressure (kPa)'] # lower pressure of LiBr cycle
+Qpump = 0.02 # kW
+
+C_lows = []
+C_highs = []
+C_COPs = []
+Qgs = []
+
+for C_low in np.arange(40, 55, 1):
+    
+    for C_high in np.arange(55, 70, 1):
+        C_lows.append(C_low)
+        C_highs.append(C_high)
+        t6 = Sat_T_P(P_high) # sat T of liquid water
+        h6 = WaterSat_H_PT(P_high, t6)  # sat liquid water high pressure
+        
+        
+        h7 = h6   # expansion value, h7 is at the low pressure state now.
+        hf = WaterSat_H_PT(P_low, Sat_T_P(P_low))
+        hg = SteamSat_H_PT(P_low, Sat_T_P(P_low)) 
+        vapor_quality_7 = (h7-hf)/(hg-hf)
+        
+        t8 = Sat_T_P(P_low)
+        h8 = SteamSat_H_PT(P_low, t8) # sat vapor low pressure
+        
+        m8 = Qe/(h8-h7) #kg/s 
+        m7 = m6 = m5 = m8
+        t7 = t8 
+        
+        rt9 = rt__(P_low, C, D, E)
+        t9 = t__(C_low, rt9, B, A)
+        h9 = H_Xt(C_low, t9, A_t1, B_t1, C_t1)
+        
+        m14 = -m8/(1-(C_high/C_low))
+        m13 = m12 = m14
+        
+        m9 = C_high/C_low*m14
+        m10 = m11 = m9 
+        
+        h10 = (m9*h9+Qpump)/m10 
+        
+        # for h14 we assume a vapor quality of 0.005, after the expansion valve. hence 
+        # h14 = h_LiBr_solution + h15_vapor (0.005)
+        hf = WaterSat_H_PT(P_low, Sat_T_P(P_low))
+        hg = SteamSat_H_PT(P_low, Sat_T_P(P_low))
+        vapor_quality_14 = 0.005
+        h14_steam_compo = vapor_quality_14*(hg-hf)+hf
+        rt14 = rt__(P_low, C, D, E)
+        t14 = t__(C_high, rt14, B, A)
+        h14 = H_Xt(C_high, t14, A_t1, B_t1, C_t1) + h14_steam_compo 
+        h13 = h14
+        
+        rt12 = rt__(P_high, C, D, E)
+        t12 = t__(C_high, rt12, B, A)
+        h12 = H_Xt(C_high, t12, A_t1, B_t1, C_t1)
+        
+        # Embedded Heat exhanger balance
+        # Stream 12-13 energy balance 
+        Q_he = m12*h12 - m13*h13
+        # Stream 10-11 energy balance
+        h11 = (m10*h10 + Q_he)/m11
+        
+        # Solving for stream 5, knowing it should be a superheated vapor.
+        
+        Tsat = Sat_T_P(P_high)  # T for stream 5 always has to be greater than Tsat.
+        h5 = H_vap_PT(P_high,  Tsat+2)
+        Qc = m5*h5 - m6*h6 
+        Qg = m12*h12 + m5*h5 - m11*h11
+        COP = Qe/Qg
+        C_COPs.append(COP)
+        Qgs.append(Qg)
+
+C_lows = np.array(C_lows)
+C_highs = np.array(C_highs)
+C_COPs = np.array(C_COPs)
+
+# Reshape COPs to be a 2D array for plotting
+num_C_lows = len(np.unique(C_lows))
+num_C_highs = len(np.unique(C_highs))
+C_COPs = C_COPs.reshape(num_C_highs, num_C_lows)
+
+# Create the heatmap
+plt.imshow(C_COPs, extent=[min(C_lows), max(C_lows), min(C_highs), max(C_highs)],
+           aspect='auto', origin='lower')
+plt.colorbar(label='Coefficient of Performance (COP)')
+plt.xlabel('Lower LiBr Concentration (%)')
+plt.ylabel('Upper LiBr Concentration (%)')
+plt.title('LiBr-H20 cycle : COP vs Varying System Concentrations')
+plt.show()
+
+# HOLDING CONCENTRATIONS CONSTANT #
+
+C_low = LiBr_system['Stream 11 - LiBr concentration (%)']  #%
+C_high = LiBr_system['Stream 14 - LiBr concentration (%)'] #%
+Qpump = 0.02
+
+P_lows = []
+P_highs = []
+COPs = []
+Qgs = []
+
+for P_low in np.arange(0.68, 4.3, 0.025):
+    
+    for P_high in np.arange(4.8, 9.0, 0.025):
+        P_lows.append(P_low)
+        P_highs.append(P_high)
+        t6 = Sat_T_P(P_high) # sat T of liquid water
+        h6 = WaterSat_H_PT(P_high, t6)  # sat liquid water high pressure
+        
+        
+        h7 = h6   # expansion value, h7 is at the low pressure state now.
+        hf = WaterSat_H_PT(P_low, Sat_T_P(P_low))
+        hg = SteamSat_H_PT(P_low, Sat_T_P(P_low)) 
+        vapor_quality_7 = (h7-hf)/(hg-hf)
+        
+        t8 = Sat_T_P(P_low)
+        h8 = SteamSat_H_PT(P_low, t8) # sat vapor low pressure
+        
+        m8 = Qe/(h8-h7) #kg/s 
+        m7 = m6 = m5 = m8
+        t7 = t8 
+        
+        rt9 = rt__(P_low, C, D, E)
+        t9 = t__(C_low, rt9, B, A)
+        h9 = H_Xt(C_low, t9, A_t1, B_t1, C_t1)
+        
+        m14 = -m8/(1-(C_high/C_low))
+        m13 = m12 = m14
+        
+        m9 = C_high/C_low*m14
+        m10 = m11 = m9 
+        h10 = (m9*h9+Qpump)/m10 
+        
+        # for h14 we assume a vapor quality of 0.005, after the expansion valve. hence 
+        # h14 = h_LiBr_solution + h15_vapor (0.005)
+        hf = WaterSat_H_PT(P_low, Sat_T_P(P_low))
+        hg = SteamSat_H_PT(P_low, Sat_T_P(P_low))
+        vapor_quality_14 = 0.005
+        h14_steam_compo = vapor_quality_14*(hg-hf)+hf
+        rt14 = rt__(P_low, C, D, E)
+        t14 = t__(C_high, rt14, B, A)
+        h14 = H_Xt(C_high, t14, A_t1, B_t1, C_t1) + h14_steam_compo 
+        h13 = h14
+        
+        rt12 = rt__(P_high, C, D, E)
+        t12 = t__(C_high, rt12, B, A)
+        h12 = H_Xt(C_high, t12, A_t1, B_t1, C_t1)
+        
+        # Heat exhanger balance
+        # Stream 12-13 energy balance 
+        Q_he = m12*h12 - m13*h13
+        # Stream 10-11 energy balance
+        h11 = (m10*h10 + Q_he)/m11
+        
+        # Solving for stream 5, knowing it is a superheated vapor.
+        
+        Tsat = Sat_T_P(P_high)  # T for stream 5 always has to be greater than Tsat.
+        h5 = H_vap_PT(P_high,  Tsat+2)
+        Qc = m5*h5 - m6*h6 # correct
+        Qg = m12*h12 + m5*h5 - m11*h11 
+        COP = Qe/Qg
+        COPs.append(COP)
+        Qgs.append(Qg)
+
+P_lows = np.array(P_lows)
+P_highs = np.array(P_highs)
+COPs = np.array(COPs)
+
+# Reshape COPs to be a 2D array for plotting
+num_P_lows = len(np.unique(P_lows))
+num_P_highs = len(np.unique(P_highs))
+COPs = COPs.reshape(num_P_highs, num_P_lows)
+
+# Create the heatmap
+plt.imshow(COPs, extent=[min(P_lows), max(P_lows), min(P_highs), max(P_highs)],
+           aspect='auto', origin='lower')
+plt.colorbar(label='Coefficient of Performance (COP)')
+plt.xlabel('Lower system pressure (kPa)')
+plt.ylabel('Upper system pressure (kPa)')
+plt.title('LiBr-H20 cycle : COP vs Varying System Pressures')
+plt.show()
