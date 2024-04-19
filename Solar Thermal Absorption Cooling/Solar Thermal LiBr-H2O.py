@@ -13,7 +13,7 @@ import matplotlib.pyplot as plt
 from scipy.optimize import fsolve
 import pygad
 
-Isc = 1367 # W/m2 Solar constant
+Io = Isc = 1367 # W/m2 Solar constant
 
 Months = ['January', 'Feburary', 'March', 'April', 'May', 'June', 'July', \
           'August', 'September', 'October', 'November', 'December']
@@ -462,6 +462,17 @@ def Superheated_T_pH(P, H):
 # Taken from Faruque M W. 2020.
 tol = 10e-3
 
+# Fitted constants
+A_t1 = [-2024.33, 163.309, -4.88161, 6.302948e-2, -2.913705e-4]
+B_t1 = [18.2829, -1.1691757, 3.248041e-2, -4.034184e-4, 1.8520569e-6]
+C_t1 = [-3.7008214e-2, 2.8877666e-3, -8.1313015e-5, 9.9116628e-7, -4.4441207e-9]
+
+A = [ -2.00755, 0.16976, -3.133362e-3, 1.97668e-5]
+B = [124.937, -7.71649, 0.152286, -7.95090e-4]
+C = 7.05
+D = -1596.49
+E = -104095.5
+
 def rT__(X, t, A, B): # Equation 3 - Faruque M W. 2020. 
     '''
     Function to calculate the refrigerant temperature in deg C. 
@@ -681,7 +692,7 @@ def S_Xt(X, t, Entropy_constants):
 #########################################################################
 
 T_outside = 36 # Deg C
-Qcooling = 7.56 #kW - Calculated in the report.
+Qe = Qcooling = 7.56 #kW - Calculated in the report.
 Qpump = 0.02 # kW
 
 def LiBr_cycle_fitness(ga_instance, solution_LiBr, solution_idx_LiBr):
