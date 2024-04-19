@@ -777,4 +777,56 @@ def LiBr_cycle_fitness(ga_instance, solution_LiBr, solution_idx_LiBr):
     fitness = COP
     
     return fitness
+#pre defining GA properties.
+num_generations = 500
+num_parents_mating = 4
 
+fitness_function = LiBr_cycle_fitness
+
+sol_per_pop = 80
+num_genes = 4
+
+init_range_low = 0
+init_range_high = 70
+
+parent_selection_type = "sss"
+keep_parents = 1
+
+crossover_type = "single_point"
+
+mutation_type = "random"
+mutation_percent_genes = 10
+def on_gen(ga_instance):
+    print("Generation : ", ga_instance.generations_completed)
+    print("Fitness of the best solution :", ga_instance.best_solution()[1])
+    
+ga_instance = pygad.GA(num_generations=num_generations,
+                       num_parents_mating=num_parents_mating,
+                       fitness_func=fitness_function,
+                       sol_per_pop=sol_per_pop,
+                       num_genes=num_genes,
+                       init_range_low=init_range_low,
+                       init_range_high=init_range_high,
+                       parent_selection_type=parent_selection_type,
+                       keep_parents=keep_parents,
+                       crossover_type=crossover_type,
+                       mutation_type=mutation_type,
+                       mutation_percent_genes=mutation_percent_genes)
+
+ga_instance.run()
+
+ga_instance.plot_fitness()
+
+solution_LiBr, solution_fitness, solution_idx_LiBr = ga_instance.best_solution()
+
+optimal_P_low = round((( solution_LiBr[0] - 0) /(100 - 0)) * (4.8 - 0.676)+0.676,2)
+optimal_P_high = round(((solution_LiBr[1] - 0) / (100 - 0)) * (10 - 4.8) + 4.8,2)
+T_superheated = Sat_T_P(optimal_P_high)
+optimal_C_low = round(solution_LiBr[2],2)
+optimal_C_high = round(solution_LiBr[3],2)
+
+print(f"Parameters of the best solution : Lower system pressure {optimal_P_low}kPa ;\
+       Upper system pressure {optimal_P_high}kPa ; Lower LiBr concentration {optimal_C_low}% ; \
+           Upper LiBr concentration {optimal_C_high}%")
+print(f"Fitness value of the best solution = {solution_fitness}")
+print(f"Index of the best solution : {solution_idx_LiBr}")
