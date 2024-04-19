@@ -10,6 +10,8 @@ a vapor compression cycle.
 #########################################################################
 import numpy as np
 import matplotlib.pyplot as plt
+from scipy.optimize import fsolve
+import pygad
 
 Isc = 1367 # W/m2 Solar constant
 
