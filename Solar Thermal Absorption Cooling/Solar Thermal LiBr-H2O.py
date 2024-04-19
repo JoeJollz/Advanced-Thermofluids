@@ -146,9 +146,7 @@ for i, month in enumerate(Months):
     monthly = 0
     for j in range(Days_in_month):
         Day+=1
-        print(Day)
         daily_irradiance_Ith, daily_irradiance_Idh, daily_irradiance_Ibn, counter_out_of_hours = daily_irrad_calc(Day, longitude, phi)
-        print(counter_out_of_hours)
         daily_irradiance.append(sum(daily_irradiance_Ith)/(60-counter_out_of_hours))
         monthly += sum(daily_irradiance_Ith)/(60-counter_out_of_hours)
     Monthly_irradiance.append(monthly/Days_in_month)
