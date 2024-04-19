@@ -173,9 +173,9 @@ print(f'The average solar irradiance (W/m2) for July, during daylight hours, is:
 print('--------------------------------------------------------------------------------------------')
 
 
-#########################################################################
-              ### PART 2.1 - LiBr-H20 cycle design ###
-#########################################################################
+###################################################################################
+    ### PART 2.1 - Useful Functions for te LiBr-H20 cycle and Vapor Compression cycle ###
+###################################################################################
 '''
 All of these functions in this code, from the IAPWS have been tested for validity on 
 the Water Tables.
@@ -675,8 +675,106 @@ def S_Xt(X, t, Entropy_constants):
     return sum_1
 
 #########################################################################
-              ### PART 2.2 - Vapor Compression cycle design ###
+              ### PART 2.2 - LiBr-H2O cycle design ###
 #########################################################################
 
+T_outside = 36 # Deg C
+Qcooling = 7.56 #kW - Calculated in the report.
+Qpump = 0.02 # kW
 
-# %%
+def LiBr_cycle_fitness(ga_instance, solution_LiBr, solution_idx_LiBr):
+    '''
+    Fitness function of the LiBr cycle. The fitness in this case is the 
+    Coefficient of performance = Qc/Qg. This function will be called repeatedly
+    by the Genetic Algorithm.
+    '''
+    
+    
+    # Just below, is parameter rescaling, anything out of the scale returns 
+    # -np.inf, contradicting the maximisation of the Genetic algorithm. 
+    P_low = (( solution_LiBr[0] - 0) /(100 - 0)) * (4.8 - 0.676)+0.676
+    if P_low <0.676:
+        return -np.inf
+    P_high = ((solution_LiBr[1] - 0) / (100 - 0)) * (10 - 4.8) + 4.8
+    if  P_high< (P_low+0.5) or P_high> 10 or P_high<4.8:
+        return -np.inf
+    C_low = solution_LiBr[2]
+    if C_low < 40:
+        return -np.inf
+    C_high = solution_LiBr[3]
+    if C_high<C_low or C_high > 70:
+        return -np.inf
+    
+    
+    t6 = Sat_T_P(P_high) # sat T of liquid water # t6 has just flowed out of 
+    #the condensor, which is wrt to outside air temp. If t6>T_outside then the 
+    # condenser would not work effectively, and would start to act like a 
+    # evaportator. t5, the inflow stream calculated later in this code is 
+    # designed to operate at a superheated vapor for P_high, so t5>T_outside 
+    # always. 
+    if t6<T_outside: # This stops the condensor from acting like an evaporator
+        return -np.inf
+    h6 = WaterSat_H_PT(P_high, t6)  # sat liquid water high pressure
+    
+    
+    h7 = h6   # expansion value, h7 is at the low pressure state now.
+    hf = WaterSat_H_PT(P_low, Sat_T_P(P_low))
+    hg = SteamSat_H_PT(P_low, Sat_T_P(P_low)) 
+    vapor_quality_7 = (h7-hf)/(hg-hf)# after expansion, a vapor-liquid mixture exists.
+    
+    t8 = Sat_T_P(P_low) # Lower pressure, saturated temperature - deg C
+    h8 = SteamSat_H_PT(P_low, t8) # Enthalpy of sat vapor low pressure.
+    
+    m8 = Qe/(h8-h7) #kg/s 
+    m7 = m6 = m5 = m8 #kg/s
+    t7 = t8 # Deg C
+    
+    rt9 = rt__(P_low, C, D, E)
+    t9 = t__(C_low, rt9, B, A)
+    h9 = H_Xt(C_low, t9, A_t1, B_t1, C_t1) # Enthalpy stream 9
+    
+    m14 = -m8/(1-(C_high/C_low)) #kg/s
+    m13 = m12 = m14 #kg/s
+    
+    m9 = C_high/C_low*m14 #kg/s
+    m10 = m11 = m9  #kg/s
+    
+    h10 = (m9*h9+Qpump)/m10  # enthalpy stream 10, after the pump.  
+    
+    # for h14 we assume a vapor quality of 0.005, after the expansion valve. hence 
+    # h14 = h_LiBr_solution + h15_vapor (0.005)
+    hf = WaterSat_H_PT(P_low, Sat_T_P(P_low))
+    hg = SteamSat_H_PT(P_low, Sat_T_P(P_low))
+    vapor_quality_14 = 0.005
+    h14_steam_compo = vapor_quality_14*(hg-hf)+hf
+    rt14 = rt__(P_low, C, D, E)
+    t14 = t__(C_high, rt14, B, A)
+    h14 = H_Xt(C_high, t14, A_t1, B_t1, C_t1) + h14_steam_compo 
+    h13 = h14
+    
+    
+    rt12 = rt__(P_high, C, D, E)
+    t12 = t__(C_high, rt12, B, A)
+    h12 = H_Xt(C_high, t12, A_t1, B_t1, C_t1) # Enthalpy stream 12.
+    
+    # Embedded Heat exhanger balance
+    Q_he = m12*h12 - m13*h13
+    # Embedded Heat exchanger balance
+    h11 = (m10*h10 + Q_he)/m11
+    
+    # Solving for stream 5
+    # Balance on the condensor, starting from Tsat at the upper pressure of the 
+    # system, Tsat can be calculated. Stream 5 is a superheated vapor, hence 
+    # T5>Tsat.
+    
+    Tsat = Sat_T_P(P_high)  # T for stream 5 always has to be greater than Tsat.
+    
+    h5 = H_vap_PT(P_high,  Tsat+2)
+    Qc = m5*h5 - m6*h6  # Condensor heat rejection. 
+    Qg = m12*h12 + m5*h5 - m11*h11  # calculating the energy required by the 
+                                    # generator to make this cycle feasible. 
+    COP = Qe/Qg
+    fitness = COP
+    
+    return fitness
+
