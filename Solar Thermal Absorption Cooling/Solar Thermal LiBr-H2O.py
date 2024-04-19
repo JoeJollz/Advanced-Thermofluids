@@ -1197,3 +1197,130 @@ while solution_fitness_solar<0:
     ga_instance.plot_fitness()
     
     solution_solar, solution_fitness_solar, solution_idx_solar = ga_instance.best_solution()
+optimal_P_low_solar = round((( solution_solar[0] - 0) /(10 - 0)) * (4.8 - 0.68)+0.68,2)
+optimal_P_high_solar = round(((solution_solar[1] - 0) / (10 - 0)) * (9.5 - 4.9) + 4.9,2)
+T_superheated_solar = Sat_T_P(optimal_P_high)
+optimal_mass_flow = round(((solution_solar[2]-0)/(10-0)*(0.1-0.001)+0.001),7)
+
+def Final_Solar_values(optimal_P_low_solar, optimal_P_high_solar, T_superheated_solar, optimal_mass_flow):
+    '''
+    Input the final optimal parameters to return the system parameters.
+
+    Parameters
+    ----------
+    optimal_P_low_solar : Float
+        Lower pressure of the solar system (kPa).
+    optimal_P_high_solar : Float
+        Upper pressure of the solar system (kPa).
+    T_superheated_solar : Float
+        Superheated temperautre (deg C).
+    optimal_mass_flow : Float
+        Mass flow rate of system (kg/s)
+
+    Returns
+    -------
+    Solar_system : Dictionary
+        Returns the parameters; enthalpies, mass flow, pressure, temperature,
+        for all the vapor compression streams.
+
+    '''
+    Solar_system = {} # Dictionary of all system parameters.
+    
+    
+    m1 = m4 = m3 = m2 = optimal_mass_flow
+    
+    Qg = LiBr_system['Q generator (kW)'] #kW this value must be equal to the Qgenerator for the LiBr cycle.
+    
+    # ensure energy transfer from stream 2 into the generator of the LiBr cycle
+    Ttarget = max(LiBr_system['Stream 11 - Temperature (Deg Cel)'], LiBr_system['Stream 5 - Temperature (Deg Cel)'])
+    superheat_added = 20
+    t2 = Ttarget+superheat_added
+    h2 = H_vap_PT(optimal_P_high_solar, t2)
+    
+    
+    
+    
+    t1 = Sat_T_P(optimal_P_low_solar) # saturated vapor
+    h1 = SteamSat_H_PT(optimal_P_low_solar, t1)
+        
+    t3 = Sat_T_P(optimal_P_high_solar)
+    h3 = WaterSat_H_PT(optimal_P_high_solar, t3)
+    
+    h4 = h3
+    t4 = t1
+    hf = WaterSat_H_PT(optimal_P_low_solar, Sat_T_P(optimal_P_low_solar))
+    hg = SteamSat_H_PT(optimal_P_low_solar, Sat_T_P(optimal_P_low_solar)) 
+    vapor_quality_4 = (h4-hf)/(hg-hf)
+
+    Qsolar = m1*h1 - m4*h4
+    
+    # condensor energy balance
+    h2 = (Qg +m3*h3)/m2
+    # check if h2 is greater then the Tsat of the P_high, to ensure superheated vapor
+    # is present after the comp. 
+    h_sat_vapor = SteamSat_H_PT(P_high, Sat_T_P(P_high))
+    if h2 <= h_sat_vapor:
+        print('Stream 2 is NOT a superheated vapor, re-evaluate calculations')
+        print('Current enthalpy: ', h2, 'Sat enthalpy vapor: ', h_sat_vapor)
+        return -np.inf
+    
+    Q_comp = m2*h2 - m1*h1
+    if Q_comp<0:
+        print('Error compressor negative')
+        return -np.inf
+    
+    Solar_system['Stream 1 - Temperature (Deg Cel)'] = t1
+    Solar_system['Stream 1 - Pressure (kPa)'] = optimal_P_low_solar
+    Solar_system['Stream 1 - Enthalpy (kJ/kg)'] = h1
+    
+    Solar_system['Stream 2 - Temperature (Deg Cel)'] = t2
+    Solar_system['Stream 2 - Pressure (kPa)'] = optimal_P_high_solar
+    Solar_system['Stream 2 - Enthalpy (kJ/kg)'] = h2
+    
+    Solar_system['Stream 3 - Temperature (Deg Cel)'] = t3
+    Solar_system['Stream 3 - Pressure (kPa)'] = optimal_P_high_solar
+    Solar_system['Stream 3 - Enthalpy (kJ/kg)'] = h3
+    
+    Solar_system['Stream 4 - Temperature (Deg Cel)'] = t4
+    Solar_system['Stream 4 - Pressure (kPa)'] = optimal_P_low_solar
+    Solar_system['Stream 4 - Enthalpy (kJ/kg)'] = h4
+    
+    Solar_system['Q solar (kW)'] = Qsolar
+    Solar_system['System Mass Flow (kg/s)'] = m1
+    Solar_system['Q Compressor (kW)'] = Q_comp
+
+
+    #PLOTTING PH DIAGRAM #
+    x_coord = [h1, h2, h3, h4, h1]  # Added h1 to close the loop
+    y_coord = [optimal_P_low_solar, optimal_P_high_solar, optimal_P_high_solar, optimal_P_low_solar, optimal_P_low_solar]  # Added optimal_P_low_solar to close the loop
+    labels = ['1', '2', '3', '4']
+    
+    # Calculate saturation curves
+    Sat_liquid_curve = []
+    Sat_vapor_curve = []
+    Plot_pressure = np.linspace(0.68, optimal_P_high_solar*1.5, 100)
+    
+    for pressure in Plot_pressure:
+        Sat_liquid_curve.append(WaterSat_H_PT(pressure, Sat_T_P(pressure)))
+        Sat_vapor_curve.append(SteamSat_H_PT(pressure, Sat_T_P(pressure)))
+    
+    # Plot saturation curves
+    plt.plot(Sat_vapor_curve, Plot_pressure, label='Saturated Vapor Curve')
+    plt.plot(Sat_liquid_curve, Plot_pressure, label='Saturated Liquid Curve')
+
+    plt.plot(x_coord, y_coord, 'ro')
+    offset = 0.3
+    for label, x, y in zip(labels, x_coord, y_coord):
+        plt.text(x + 30, y + offset, label)
+    
+    plt.plot(x_coord, y_coord, 'k-')
+    plt.title('Solar - Water PH diagram')
+    plt.ylabel('Pressure (kPa)')
+    plt.xlabel('Enthalpy (kJ/kg)')
+
+    plt.legend()
+    plt.show()
+    
+    return Solar_system
+
+Solar_system = Final_Solar_values(optimal_P_low_solar, optimal_P_high_solar, T_superheated_solar, optimal_mass_flow)
