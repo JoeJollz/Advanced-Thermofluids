@@ -3,6 +3,8 @@ This code includes 2 key sections, the first on Solar irradiance estimate
 (part 1 of the coursework).And the thermo cycles for LiBr-H2O cooling with 
 a vapor compression cycle. 
 
+Ensure you have pip intalled 'gypad'
+
 '''
 
 #########################################################################
