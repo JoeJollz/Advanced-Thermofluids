@@ -1344,8 +1344,8 @@ print(f"Parameters of the best solution : Lower system pressure {optimal_P_low_s
        Upper system pressure {optimal_P_high_solar}kPa ; Mass Flow {optimal_mass_flow} kg/s")
 Qsolar = Solar_system['Q solar (kW)']
 Qcompressor = Solar_system['Q Compressor (kW)']
-print(f"Q solar required: {Qsolar}kW")
-print(f"Q compressor required: {Qcompressor}")
+print(f"Q solar required: {round(Qsolar,3)}kW")
+print(f"Q compressor required: {round(Qcompressor,3)}")
 print('----------------------------------------------------------------------')
 
 #########################################################################
