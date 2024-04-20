@@ -5,6 +5,12 @@ a vapor compression cycle.
 
 Ensure you have pip intalled 'gypad'
 
+Once you have run the code, please view the following key variables:
+    - 'LiBr_system'
+    - 'Solar_system' 
+    Both of these variables give an overview of the absorption cycle
+    and of the Vapor compression cycle. 
+
 '''
 
 #########################################################################
