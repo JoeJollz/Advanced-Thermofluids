@@ -11,6 +11,11 @@ Once you have run the code, please view the following key variables:
     Both of these variables give an overview of the absorption cycle
     and of the Vapor compression cycle. 
 
+    
+References: 
+    - Faruque M H. 'Thermodynamic properties of lithium bromide solution'. 2020
+    - IAPWS. 2012.
+    - Assad MEH, et al. 2021
 '''
 
 #########################################################################
