@@ -16,6 +16,8 @@ References:
     - Faruque M H. 'Thermodynamic properties of lithium bromide solution'. 2020
     - IAPWS. 2012.
     - Assad MEH, et al. 2021
+
+This code is solely the work of Joseph Jolley
 '''
 
 #########################################################################
