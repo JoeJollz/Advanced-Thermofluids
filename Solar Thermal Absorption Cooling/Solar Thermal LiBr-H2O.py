@@ -1110,10 +1110,10 @@ while solution_fitness_solar<0:
 
         '''
         P_low = (solution_solar[0]-0)/(10-0)*(4.8-0.68)+0.68
-        if P_low<0.68 or P_low>2: # mass from constraints
+        if P_low<0.68 or P_low>2: # pressure constraints
             return -np.inf
         P_high = (solution_solar[1]-0) /(10-0)*(9.5-4.9)+4.9
-        if P_high >9.5 or P_high<4.9: # mass flow constraints
+        if P_high >9.5 or P_high<4.9: # pressure constraints
             return -np.inf
     
         
