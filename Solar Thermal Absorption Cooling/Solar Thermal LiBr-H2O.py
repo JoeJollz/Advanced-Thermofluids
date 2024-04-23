@@ -384,6 +384,38 @@ def H_vap_PT(P, T):
     H = tau*R*T*(yO+yr)
     
     return H
+#%%
+# IAPWS 2007 - Section 8.1
+def Sat_P_T(T):
+    '''
+    Takes in Tsat in Deg C, outputs Psat (kPa)
+
+    Parameters
+    ----------
+    T : Float
+        Saturation Temperature (deg C).
+
+    Returns
+    -------
+    Psat : Float
+        Outputs saturation pressure (kPa).
+
+    '''
+    
+    n = [ 0.11670521452767e+4, -0.72421316703206e+6, -0.17073846940092e+2, \
+        0.12020824702470e+5, -0.32325550322333e+7, 0.14915108613530e+2, \
+        -0.48232657361591e+4, 0.40511340542057e+6, -0.23855557567849, \
+        0.65017534844798e+3
+        ]
+    T += 273.15  
+    Pheta = T+ n[8]/(T-n[9])
+    
+    A = Pheta**2 + n[0]*Pheta + n[1]
+    B = n[2]* Pheta**2 +n[3]*Pheta + n[4]
+    C = n[5]*Pheta**2 + n[6]*Pheta +n[7]
+    
+    Psat = (2*C/(-B+(B**2-4*A*C)**(1/2)))**4
+    return Psat*1000
 
 #%%
 # IAPWS 2007 - Section 8.2
