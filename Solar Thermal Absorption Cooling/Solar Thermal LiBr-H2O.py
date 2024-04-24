@@ -1246,30 +1246,17 @@ while solution_fitness_solar<0:
             print('Temp enter: ', t2, 'Target gen temp: ', Ttarget)
             return -np.inf
             
-        
-        
         h4 = h3 # expansion value, isenthalpic.
         hf = WaterSat_H_PT(P_low, Sat_T_P(P_low))
         hg = SteamSat_H_PT(P_low, Sat_T_P(P_low)) 
         vapor_quality_4 = (h4-hf)/(hg-hf) # liquid vapor mixture.
         
-        print('h1: ', h1)
-        print('h3: ', h3)
-        print('h4: ', h4)
         print('mass flow: ', m1)
         
         
         Qsolar = m1*h1 - m4*h4
         print('Qsolar required: ', Qsolar)
-        
-        # check if h2 is greater then the Tsat of the P_high, to ensure superheated vapor
-        # is present after the comp. 
-        h_sat_vapor = SteamSat_H_PT(P_high, Sat_T_P(P_high))
-        if h2 <= h_sat_vapor:
-            print('Stream 2 is NOT a superheated vapor, re-evaluate calculations')
-            print('Current enthalpy: ', h2, 'Sat enthalpy vapor: ', h_sat_vapor)
-            return -np.inf
-        
+                
         Q_comp = m2*h2 - m1*h1
         if Q_comp<0:
             print('Error compressor negative')
@@ -1283,24 +1270,7 @@ while solution_fitness_solar<0:
         
         return fitness
 
-    num_generations = 500
-    num_parents_mating = 4
-    
     fitness_function = Solar_cycle_fitness
-    
-    sol_per_pop = 80
-    num_genes = 4
-    
-    init_range_low = 0
-    init_range_high = 10
-    
-    parent_selection_type = "sss"
-    keep_parents = 1
-    
-    crossover_type = "single_point"
-    
-    mutation_type = "random"
-    mutation_percent_genes = 10
     def on_gen(ga_instance):
         print("Generation : ", ga_instance.generations_completed)
         print("Fitness of the best solution :", ga_instance.best_solution()[1])
@@ -1316,7 +1286,8 @@ while solution_fitness_solar<0:
                            keep_parents=keep_parents,
                            crossover_type=crossover_type,
                            mutation_type=mutation_type,
-                           mutation_percent_genes=mutation_percent_genes)
+                           mutation_percent_genes=mutation_percent_genes
+                           gene_space = GS_solar)
     
     ga_instance.run()
     
