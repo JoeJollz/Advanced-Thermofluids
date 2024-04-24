@@ -1157,6 +1157,8 @@ T_to_beat = max(LiBr_system['Stream 12 - Temperature (Deg Cel)'], LiBr_system['S
               ### PART 2.3 - Vapor Compression cycle design ###
 #########################################################################
 
+Lower_bound_Upper_pressure_solar = Sat_P_T(T_to_beat)
+
 solution_fitness_solar=-np.inf
 while solution_fitness_solar<0:
     '''
