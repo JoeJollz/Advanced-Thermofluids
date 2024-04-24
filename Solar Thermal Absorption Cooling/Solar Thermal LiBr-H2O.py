@@ -813,6 +813,10 @@ def LiBr_cycle_fitness(ga_instance, solution_LiBr, solution_idx_LiBr):
     m13 = m12 = m14 #kg/s
     
     m9 = C_high/C_low*m14 #kg/s
+    if m9<0:
+        print('-------------------------------------------------------')
+        print('rejected at m9')
+        return -np.inf
     m10 = m11 = m9  #kg/s
     
     h10 = (m9*h9+Qpump)/m10  # enthalpy stream 10, after the pump.  
