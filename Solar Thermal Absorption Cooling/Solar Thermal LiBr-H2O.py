@@ -871,16 +871,16 @@ def LiBr_cycle_fitness(ga_instance, solution_LiBr, solution_idx_LiBr):
     
     return fitness
 #pre defining GA properties.
-num_generations = 500
+num_generations = 400
 num_parents_mating = 4
 
 fitness_function = LiBr_cycle_fitness
 
-sol_per_pop = 80
+sol_per_pop = 100
 num_genes = 4
 
-init_range_low = 0
-init_range_high = 70
+init_range_low = 40
+init_range_high = 50
 
 parent_selection_type = "sss"
 keep_parents = 1
@@ -888,11 +888,23 @@ keep_parents = 1
 crossover_type = "single_point"
 
 mutation_type = "random"
-mutation_percent_genes = 10
+mutation_percent_genes = 30
 def on_gen(ga_instance):
     print("Generation : ", ga_instance.generations_completed)
     print("Fitness of the best solution :", ga_instance.best_solution()[1])
-    
+
+# Dict 1 is th lower pressure, dict 2 is the upper pressure, dict 3 and 4 
+# correspond to the lower and upper concentrations of LiBr. 
+# The lower bound for th upper system pressure, must be satisfactory so that the,
+# corresponding Tsat(P_high) must be greater than T_outside (36 deg C).
+GS = [{'low': 0.68, 'high': 5.8},
+      {'low': 6, 'high': 8},
+      {'low': 40, 'high': 50},
+      {'low': 50, 'high': 60}
+      ]
+
+
+
 ga_instance = pygad.GA(num_generations=num_generations,
                        num_parents_mating=num_parents_mating,
                        fitness_func=fitness_function,
@@ -904,7 +916,8 @@ ga_instance = pygad.GA(num_generations=num_generations,
                        keep_parents=keep_parents,
                        crossover_type=crossover_type,
                        mutation_type=mutation_type,
-                       mutation_percent_genes=mutation_percent_genes)
+                       mutation_percent_genes=mutation_percent_genes,
+                       gene_space = GS)
 
 ga_instance.run()
 
