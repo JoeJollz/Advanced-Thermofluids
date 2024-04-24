@@ -1286,7 +1286,7 @@ while solution_fitness_solar<0:
                            keep_parents=keep_parents,
                            crossover_type=crossover_type,
                            mutation_type=mutation_type,
-                           mutation_percent_genes=mutation_percent_genes
+                           mutation_percent_genes=mutation_percent_genes,
                            gene_space = GS_solar)
     
     ga_instance.run()
