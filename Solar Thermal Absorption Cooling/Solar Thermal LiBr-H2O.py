@@ -192,7 +192,7 @@ print('-------------------------------------------------------------------------
     ### PART 2.1 - Useful Functions for te LiBr-H20 cycle and Vapor Compression cycle ###
 ###################################################################################
 '''
-All of these functions in this code, from the IAPWS have been tested for validity on 
+All of these functions in this code, from the IAPWS have been tested for validity with 
 the Water Tables.
 '''
 ## IAPWS 2007
@@ -754,28 +754,34 @@ def LiBr_cycle_fitness(ga_instance, solution_LiBr, solution_idx_LiBr):
     '''
     
     
-    # Just below, is parameter rescaling, anything out of the scale returns 
-    # -np.inf, contradicting the maximisation of the Genetic algorithm. 
-    P_low = (( solution_LiBr[0] - 0) /(100 - 0)) * (4.8 - 0.676)+0.676
-    if P_low <0.676:
+    P_low = solution_LiBr[0] 
+    if P_low <0.676: # If lower pressure constraint is breached, return -np.inf, contradicting the maximisation nature of the GA
         return -np.inf
-    P_high = ((solution_LiBr[1] - 0) / (100 - 0)) * (10 - 4.8) + 4.8
-    if  P_high< (P_low+0.5) or P_high> 10 or P_high<4.8:
+    P_high = solution_LiBr[1]
+    if  P_high< (P_low+0.2): # Phigh must be higher than Plow
         return -np.inf
+    
+    
     C_low = solution_LiBr[2]
-    if C_low < 40:
+    if C_low < 40: # Concentration constraint
         return -np.inf
-    C_high = solution_LiBr[3]
-    if C_high<C_low or C_high > 70:
+    C_high = solution_LiBr[3] 
+    if C_high<C_low : # Constraint, Chigh must be > Clow
+        print('------------------------------------------------------')
+        print('C low:', C_low)
+        print('C high:', C_high)
+        print('C high is < C low, re-evaluate')
         return -np.inf
     
     
-    t6 = Sat_T_P(P_high) # sat T of liquid water # t6 has just flowed out of 
+    t6 = Sat_T_P(P_high) # sat T of liquid water 't6' has just flowed out of 
     #the condensor, which is wrt to outside air temp. If t6>T_outside then the 
     # condenser would not work effectively, and would start to act like a 
     # evaportator. t5, the inflow stream calculated later in this code is 
     # designed to operate at a superheated vapor for P_high, so t5>T_outside 
-    # always. 
+    # always.
+    # As t6 is always at a sat point, the P_high lower bound is selected so
+    # that t6 is always satisfying the ambient air temperature difference. 
     if t6<T_outside: # This stops the condensor from acting like an evaporator
         return -np.inf
     h6 = WaterSat_H_PT(P_high, t6)  # sat liquid water high pressure
