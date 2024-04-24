@@ -1294,10 +1294,10 @@ while solution_fitness_solar<0:
     ga_instance.plot_fitness()
     
     solution_solar, solution_fitness_solar, solution_idx_solar = ga_instance.best_solution()
-optimal_P_low_solar = round((( solution_solar[0] - 0) /(10 - 0)) * (4.8 - 0.68)+0.68,2)
-optimal_P_high_solar = round(((solution_solar[1] - 0) / (10 - 0)) * (9.5 - 4.9) + 4.9,2)
+optimal_P_low_solar = round(solution_solar[0],2)
+optimal_P_high_solar = round(solution_solar[1],2)
 T_superheated_solar = Sat_T_P(optimal_P_high)
-optimal_mass_flow = round(((solution_solar[2]-0)/(10-0)*(0.1-0.001)+0.001),7)
+optimal_mass_flow = round(solution_solar[2],4)
 
 def Final_Solar_values(optimal_P_low_solar, optimal_P_high_solar, T_superheated_solar, optimal_mass_flow):
     '''
@@ -1323,7 +1323,6 @@ def Final_Solar_values(optimal_P_low_solar, optimal_P_high_solar, T_superheated_
     '''
     Solar_system = {} # Dictionary of all system parameters.
     
-    
     m1 = m4 = m3 = m2 = optimal_mass_flow
     
     Qg = LiBr_system['Q generator (kW)'] #kW this value must be equal to the Qgenerator for the LiBr cycle.
@@ -1333,9 +1332,6 @@ def Final_Solar_values(optimal_P_low_solar, optimal_P_high_solar, T_superheated_
     superheat_added = 20
     t2 = Ttarget+superheat_added
     h2 = H_vap_PT(optimal_P_high_solar, t2)
-    
-    
-    
     
     t1 = Sat_T_P(optimal_P_low_solar) # saturated vapor
     h1 = SteamSat_H_PT(optimal_P_low_solar, t1)
@@ -1401,14 +1397,16 @@ def Final_Solar_values(optimal_P_low_solar, optimal_P_high_solar, T_superheated_
         Sat_liquid_curve.append(WaterSat_H_PT(pressure, Sat_T_P(pressure)))
         Sat_vapor_curve.append(SteamSat_H_PT(pressure, Sat_T_P(pressure)))
     
-    # Plot saturation curves
     plt.plot(Sat_vapor_curve, Plot_pressure, label='Saturated Vapor Curve')
     plt.plot(Sat_liquid_curve, Plot_pressure, label='Saturated Liquid Curve')
 
+    plt.xlim(h4-100, h2+200)
+    plt.ylim(min(Plot_pressure), max(Plot_pressure))
+
     plt.plot(x_coord, y_coord, 'ro')
-    offset = 0.3
+    offset = 0.1
     for label, x, y in zip(labels, x_coord, y_coord):
-        plt.text(x + 30, y + offset, label)
+        plt.text(x + 20, y + offset, label)
     
     plt.plot(x_coord, y_coord, 'k-')
     plt.title('Solar - Water PH diagram')
