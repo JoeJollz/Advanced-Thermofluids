@@ -798,6 +798,10 @@ def LiBr_cycle_fitness(ga_instance, solution_LiBr, solution_idx_LiBr):
     h8 = SteamSat_H_PT(P_low, t8) # Enthalpy of sat vapor low pressure.
     
     m8 = Qe/(h8-h7) #kg/s 
+    if m8 < 0:
+        print('-------------------------------------------------------')
+        print('reject at neg m8')
+        return -np.inf
     m7 = m6 = m5 = m8 #kg/s
     t7 = t8 # Deg C
     
