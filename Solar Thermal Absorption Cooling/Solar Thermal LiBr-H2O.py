@@ -783,6 +783,8 @@ def LiBr_cycle_fitness(ga_instance, solution_LiBr, solution_idx_LiBr):
     # As t6 is always at a sat point, the P_high lower bound is selected so
     # that t6 is always satisfying the ambient air temperature difference. 
     if t6<T_outside: # This stops the condensor from acting like an evaporator
+        print('-------------------------------------------------------')
+        print('rejected at t6')
         return -np.inf
     h6 = WaterSat_H_PT(P_high, t6)  # sat liquid water high pressure
     
