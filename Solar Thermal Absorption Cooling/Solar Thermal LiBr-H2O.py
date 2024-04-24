@@ -822,6 +822,7 @@ def LiBr_cycle_fitness(ga_instance, solution_LiBr, solution_idx_LiBr):
     h10 = (m9*h9+Qpump)/m10  # enthalpy stream 10, after the pump.  
     
     # for h14 we assume a vapor quality of 0.005, after the expansion valve. hence 
+    # h14 = h_LiBr_solution + h14_vapor (0.005)
     hf = WaterSat_H_PT(P_low, Sat_T_P(P_low))
     hg = SteamSat_H_PT(P_low, Sat_T_P(P_low))
     vapor_quality_14 = 0.005
@@ -925,8 +926,8 @@ ga_instance.plot_fitness()
 
 solution_LiBr, solution_fitness, solution_idx_LiBr = ga_instance.best_solution()
 
-optimal_P_low = round((( solution_LiBr[0] - 0) /(100 - 0)) * (4.8 - 0.676)+0.676,2)
-optimal_P_high = round(((solution_LiBr[1] - 0) / (100 - 0)) * (10 - 4.8) + 4.8,2)
+optimal_P_low = round( solution_LiBr[0],2)
+optimal_P_high = round(solution_LiBr[1],2)
 T_superheated = Sat_T_P(optimal_P_high)
 optimal_C_low = round(solution_LiBr[2],2)
 optimal_C_high = round(solution_LiBr[3],2)
@@ -1009,8 +1010,6 @@ def Final_LiBr_values(optimal_P_low, optimal_P_high, optimal_C_low, optimal_C_hi
         t13 += 0.01
         P13 = P__(rT__(optimal_C_high, t13, A, B), C, D, E)
         
-    
-    
     rt12 = rt__(optimal_P_high, C, D, E)
     t12 = t__(optimal_C_high, rt12, B, A)
     h12 = H_Xt(optimal_C_high, t12, A_t1, B_t1, C_t1)
@@ -1115,11 +1114,8 @@ def Final_LiBr_values(optimal_P_low, optimal_P_high, optimal_C_low, optimal_C_hi
         Sat_liquid_curve.append(WaterSat_H_PT(pressure, Sat_T_P(pressure)))
         Sat_vapor_curve.append(SteamSat_H_PT(pressure, Sat_T_P(pressure)))
     
-    # Plot saturation curves
     plt.plot(Sat_vapor_curve, Plot_pressure, label='Saturated Vapor Curve')
     plt.plot(Sat_liquid_curve, Plot_pressure, label='Saturated Liquid Curve')
-    
-    # Plot coordinates with smaller marker size
     plt.plot(x_coord1, y_coord1, 'ro', markersize=4) # Adjust markersize as needed
     
     plt.text(h9-100, optimal_P_low -0.2, '9')
@@ -1129,9 +1125,9 @@ def Final_LiBr_values(optimal_P_low, optimal_P_high, optimal_C_low, optimal_C_hi
     plt.text(h13-120, optimal_P_high +0.3, '13')
     plt.text(h11-10, optimal_P_high +0.3, '11')
     plt.text(h12+40, optimal_P_high +0.3, '12')
-    plt.text(h6+20, optimal_P_high -0.3, '6')
+    plt.text(h6+20, optimal_P_high -0.4, '6')
     plt.text(h5, optimal_P_high +0.3, '5')
-    plt.text(h8+20, optimal_P_low -0.15, '8')
+    plt.text(h8+30, optimal_P_low -0.15, '8')
     plt.plot(x_coord1, y_coord1, 'k-')
     plt.plot(x_coord2, y_coord2, 'ro', markersize=4) # Adjust markersize as needed
     plt.plot([h8, h5], [optimal_P_low, optimal_P_high], 'k--')    
@@ -1151,7 +1147,7 @@ LiBr_system = Final_LiBr_values(optimal_P_low, optimal_P_high, optimal_C_low, op
 # Temperature for the condensor stream of the vapor compression cycle must be greater
 # than that of the temperature of the generator in the LiBr-H2O cycle to ensure net 
 # energy transfer takes place. Therefore, temperature to beat is:
-T_to_beat = max(LiBr_system['Stream 11 - Temperature (Deg Cel)'], LiBr_system['Stream 5 - Temperature (Deg Cel)'])
+T_to_beat = max(LiBr_system['Stream 12 - Temperature (Deg Cel)'], LiBr_system['Stream 5 - Temperature (Deg Cel)'])
 
 # Now, designing an appropriate Vapor Compression cycle to ensure the generator in the 
 # LiBr-H2O cycle recieves its require energy input. 
