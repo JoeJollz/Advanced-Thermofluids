@@ -862,6 +862,13 @@ def LiBr_cycle_fitness(ga_instance, solution_LiBr, solution_idx_LiBr):
         print('rejected at fitness eval. COP > 1.')
         return -np.inf
     
+    print('--------------------------------------------------------------')
+    print('Upper system pressure: ', P_high, 'kPa')
+    print('Lower system pressure: ', P_low, 'kPa')
+    print('Upper LiBr concentration: ', C_high, '%')
+    print('Lower LiBr concentration: ', C_low, '%')
+    print('COP: ', COP)
+    
     return fitness
 #pre defining GA properties.
 num_generations = 500
