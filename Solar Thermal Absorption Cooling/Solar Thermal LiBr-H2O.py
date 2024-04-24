@@ -1216,7 +1216,7 @@ while solution_fitness_solar<0:
         Qg = LiBr_system['Q generator (kW)'] #kW this value must be equal to the Qgenerator for the LiBr cycle.
         
         # ensure energy transfer from stream 2 into the generator of the LiBr cycle
-        Ttarget = max(LiBr_system['Stream 11 - Temperature (Deg Cel)'], LiBr_system['Stream 5 - Temperature (Deg Cel)'])
+        Ttarget = max(LiBr_system['Stream 12 - Temperature (Deg Cel)'], LiBr_system['Stream 5 - Temperature (Deg Cel)'])
 
         t1 = Sat_T_P(P_low) # saturated vapor
         h1 = SteamSat_H_PT(P_low, t1) # Enthalpy stream 1.
