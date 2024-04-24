@@ -822,7 +822,6 @@ def LiBr_cycle_fitness(ga_instance, solution_LiBr, solution_idx_LiBr):
     h10 = (m9*h9+Qpump)/m10  # enthalpy stream 10, after the pump.  
     
     # for h14 we assume a vapor quality of 0.005, after the expansion valve. hence 
-    # h14 = h_LiBr_solution + h15_vapor (0.005)
     hf = WaterSat_H_PT(P_low, Sat_T_P(P_low))
     hg = SteamSat_H_PT(P_low, Sat_T_P(P_low))
     vapor_quality_14 = 0.005
@@ -834,6 +833,9 @@ def LiBr_cycle_fitness(ga_instance, solution_LiBr, solution_idx_LiBr):
     
     
     rt12 = rt__(P_high, C, D, E)
+    if rt12 < -15 or rt12>110: # Equation constraint from Faruque 2020. 
+        print('-------------------------------------------------------')
+        print('rejected invalid rt12, out of recommended bounds. (Faruque. 2020)')
     t12 = t__(C_high, rt12, B, A)
     h12 = H_Xt(C_high, t12, A_t1, B_t1, C_t1) # Enthalpy stream 12.
     
