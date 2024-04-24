@@ -851,12 +851,16 @@ def LiBr_cycle_fitness(ga_instance, solution_LiBr, solution_idx_LiBr):
     
     Tsat = Sat_T_P(P_high)  # T for stream 5 always has to be greater than Tsat.
     
-    h5 = H_vap_PT(P_high,  Tsat+2)
+    h5 = H_vap_PT(P_high,  Tsat+2) # small superheat addition, this could have been treated as an extra parameter for optimisation.
     Qc = m5*h5 - m6*h6  # Condensor heat rejection. 
     Qg = m12*h12 + m5*h5 - m11*h11  # calculating the energy required by the 
                                     # generator to make this cycle feasible. 
     COP = Qe/Qg
     fitness = COP
+    if fitness > 1:
+        print('----------------------------------------------------------')
+        print('rejected at fitness eval. COP > 1.')
+        return -np.inf
     
     return fitness
 #pre defining GA properties.
