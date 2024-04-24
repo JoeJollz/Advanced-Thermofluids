@@ -1159,6 +1159,31 @@ T_to_beat = max(LiBr_system['Stream 12 - Temperature (Deg Cel)'], LiBr_system['S
 
 Lower_bound_Upper_pressure_solar = Sat_P_T(T_to_beat)
 
+num_generations = 500
+num_parents_mating = 3
+
+sol_per_pop = 80
+num_genes = 3
+
+init_range_low = 0
+init_range_high = 10
+
+parent_selection_type = "sss"
+keep_parents = 1
+
+crossover_type = "single_point"
+
+mutation_type = "random"
+
+# Dict 1 is the lower system pressure for the solar cycle
+# Dict 2 is the upper system pressure for the solar cycle, must be sufficiently
+# high to ensure heat exchange with the generator of the LiBr system.
+GS_solar = [{'low': 0.68, 'high': Lower_bound_Upper_pressure_solar},
+          {'low': Lower_bound_Upper_pressure_solar+1, 'high': \
+           Lower_bound_Upper_pressure_solar+10},
+          {'low': 0.003, 'high': 0.1}
+          ]
+
 solution_fitness_solar=-np.inf
 while solution_fitness_solar<0:
     '''
