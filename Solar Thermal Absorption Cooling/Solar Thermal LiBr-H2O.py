@@ -1231,7 +1231,12 @@ while solution_fitness_solar<0:
         h3 = WaterSat_H_PT(P_high, t3) # Enthalpy stream 3 
         
         h2 = (Qg +m3*h3)/m2 # Enthalpy stream 2
-        print('Solar condenser energy balance: ', h2*m2 -Qg -m3*h3)
+        h_sat_vapor = SteamSat_H_PT(P_high, Sat_T_P(P_high))
+        if h2 <= h_sat_vapor:
+            print('Stream 2 is NOT a superheated vapor, re-evaluate calculations')
+            print('Current enthalpy: ', h2, 'Sat enthalpy vapor: ', h_sat_vapor)
+            print('----------------------------------------------------------')
+            return -np.inf
         t2 = Superheated_T_pH(P_high, h2)
         # Ensuring the temperature of stream 2 entering the condenser is 
         # greater then that of the generator temperature, to ensure correct 
