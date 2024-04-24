@@ -1222,6 +1222,12 @@ while solution_fitness_solar<0:
         h1 = SteamSat_H_PT(P_low, t1) # Enthalpy stream 1.
         
         t3 = Sat_T_P(P_high) # Temp stream 3 (deg C)
+        if t3 < Ttarget : # Qg will flow in the incorrect direction, the VC condenser would become an evaporator. 
+            print('temp 3: ', t3, 'vs T to beat: ', Ttarget)
+            print('Upper pressure (kPa): ', P_high)
+            print('Lower pressure (kPa): ', P_low)
+            print('---------------')
+            return -np.inf
         h3 = WaterSat_H_PT(P_high, t3) # Enthalpy stream 3 
         
         h2 = (Qg +m3*h3)/m2 # Enthalpy stream 2
