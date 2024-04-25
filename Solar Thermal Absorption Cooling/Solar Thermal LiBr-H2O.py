@@ -16,6 +16,7 @@ References:
     - Faruque M H. 'Thermodynamic properties of lithium bromide solution'. 2020
     - IAPWS. 2012.
     - Assad MEH, et al. 2021
+    - PyGAD
 
 This code is solely the work of Joseph Jolley
 '''
@@ -512,6 +513,7 @@ A_t1 = [-2024.33, 163.309, -4.88161, 6.302948e-2, -2.913705e-4]
 B_t1 = [18.2829, -1.1691757, 3.248041e-2, -4.034184e-4, 1.8520569e-6]
 C_t1 = [-3.7008214e-2, 2.8877666e-3, -8.1313015e-5, 9.9116628e-7, -4.4441207e-9]
 
+#Fitted constants
 A = [ -2.00755, 0.16976, -3.133362e-3, 1.97668e-5]
 B = [124.937, -7.71649, 0.152286, -7.95090e-4]
 C = 7.05
@@ -573,7 +575,7 @@ def P__(rT, C, D, E): # Eqaution 2 - Faruque M W. 2020.
     P = np.exp(ans)   
     return P
 
-def rt__(P, C, D, E): # Takes in he saturation pressure, produces the sat T.
+def rt__(P, C, D, E): # Takes in he saturation pressure, produces the sat T. Faruque M W. 2020. 
     '''
     Refrigeration temperature in deg C, from the saturation pressure, for the 
     LiBr-Water solution. 
@@ -601,7 +603,7 @@ def rt__(P, C, D, E): # Takes in he saturation pressure, produces the sat T.
     
     return rt
 
-def t__(X, rt, B, A):
+def t__(X, rt, B, A): # Faruque M W. 2020. 
     '''
     Returns the LiBr-H20 solution temperature, taking in the concentration of 
     LiBr in % terms, and the rt, which can be calculated using the above function
@@ -632,7 +634,7 @@ def t__(X, rt, B, A):
     t = sum_1 + rt*sum_2
     return t
 
-def X__(t, rt, B, A):
+def X__(t, rt, B, A): # Faruque M W. 2020. 
     '''
     Calculates the concentration of the solution (%).
 
@@ -664,7 +666,7 @@ def X__(t, rt, B, A):
     
     return [num for num in s if 40 <= num <= 70][0]
 
-def H_Xt(X, t, A_t1, B_t1, C_t1):  
+def H_Xt(X, t, A_t1, B_t1, C_t1): # Faruque M W. 2020.  
     '''
     Enthalpy estimate of the saturated liquid solution enthalpy, note, if there
     is water vapor present also, the enthalpy of that needs to be calculated 
@@ -708,7 +710,7 @@ Entropy_constants = {
     
     }
 
-def S_Xt(X, t, Entropy_constants):
+def S_Xt(X, t, Entropy_constants): # Faruque M W. 2020. 
     '''
     Entropy of the solution
 
