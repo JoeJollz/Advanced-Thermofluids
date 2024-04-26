@@ -97,7 +97,7 @@ def daily_irrad_calc(Day, longitude, phi):
             Ith = 0
             Ibn = 0
             Idh = 0
-            counter_out_of_hours +=1 # Counter for the sun being below the hoirzon.
+            counter_out_of_hours +=1 # Counter for the sun being below the horizon.
         daily_irradiance_Ith.append(Ith)
         daily_irradiance_Ibn.append(Ibn)
         daily_irradiance_Idh.append(Idh)
