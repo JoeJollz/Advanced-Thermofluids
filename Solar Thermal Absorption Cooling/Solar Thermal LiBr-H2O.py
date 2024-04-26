@@ -1403,7 +1403,7 @@ def Final_Solar_values(optimal_P_low_solar, optimal_P_high_solar, T_superheated_
     plt.plot(Sat_liquid_curve, Plot_pressure, label='Saturated Liquid Curve')
 
     plt.xlim(h4-100, h2+200)
-    plt.ylim(min(Plot_pressure), max(Plot_pressure))
+    plt.ylim(optimal_P_low_solar*0.9), optimal_P_high_solar*1.1)
 
     plt.plot(x_coord, y_coord, 'ro')
     offset = 0.1
