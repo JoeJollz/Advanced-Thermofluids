@@ -1254,7 +1254,8 @@ while solution_fitness_solar<0:
         vapor_quality_4 = (h4-hf)/(hg-hf) # liquid vapor mixture.
         
         print('mass flow: ', m1)
-        
+        print('Upper solar system pressure: ', P_high, 'kPa')
+        print('Lower solar system pressure: ', P_low, 'kPa')
         
         Qsolar = m1*h1 - m4*h4
         print('Qsolar required: ', Qsolar)
@@ -1421,6 +1422,14 @@ def Final_Solar_values(optimal_P_low_solar, optimal_P_high_solar, T_superheated_
     return Solar_system
 
 Solar_system = Final_Solar_values(optimal_P_low_solar, optimal_P_high_solar, T_superheated_solar, optimal_mass_flow)
+
+print('---------- LiBr-H2O Absoprtion Cycle Parameters ----------------------')
+print('Parameters of the best solution - Lower system pressure=',optimal_P_low , \
+      ' ; Upper system pressure=', optimal_P_high,)
+print('Lower system LiBr concentration=', optimal_C_low, '% ; Upper system LiBr concentration=', \
+      optimal_C_high, '%')
+Qgenerator = LiBr_system['Q generator (kW)']
+print(f'Qgenerator required: {round(Qgenerator,3)}kW')
 
 print('---------- SOLAR CYCLE PARAMETERS ------------------------------------')
 print(f"Fitness value of the best solution = {solution_fitness_solar}")
