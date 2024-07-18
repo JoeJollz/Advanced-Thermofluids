@@ -16,7 +16,6 @@ def LnKp(T):
     LnKp2 = -1.02e-5*T**2+2.42e-2*T-14.2
     return [LnKp1,LnKp2]
 
-
 def thingtosolve(N_):
     N=N_**2
     lnkp1,lnkp2 = LnKp(T)
