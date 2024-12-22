@@ -2,7 +2,7 @@
 
 Engineering Tripos Part IIB 
 
-Please view the following folder: Solar Thermal Absorption Cooling if you are interested in viewing an absoprtion cooling cycle. This system consists of 2 seperate cycles working simultaneously, with one taking in solar thermal energy and concentrating it into a superheated vapor, and the other generates a cooling effect for an environment. Further adjustments can be made to this base code if you wish to achieve different cooling temperatures.
+Please view the following folder: Solar Thermal Absorption Cooling if you are interested in viewing an absoprtion cooling cycle. This system consists of 2 seperate cycles working simultaneously, with one taking in solar thermal energy and concentrating it into a superheated vapor, and the other generates a cooling effect for an environment. Further adjustments can be made to this base code if you wish to achieve different cooling temperatures. To view the finalised report, please open the file ''
 
 Both cycles are desinged to operate at vacuums, making the pracitcal feasibility very realistic.
 
